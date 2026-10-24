@@ -1,5 +1,101 @@
 # Person A status
 
+## A06 handoff - 2026-10-24 IST
+
+Phase: A06 implemented; required acceptance checks PASS on feature/person-a.
+Read completely: AGENTS.md, README_FIRST.md, MASTER_PLAN.md,
+docs/COMMON_DECISIONS.md, this status, prompts/A06.md, contracts/README.md,
+relevant schemas/fixtures, existing frontend components/tests and model config.
+A07 read only to preserve its boundary. No contracts, B-owned files, dependency
+manifests/locks or public fixture files changed. No A07-A10 implementation.
+
+Files changed and resulting behavior:
+- frontend/src/data/outage.ts: pure shared workspace reducer for selection and
+  sensor-available / simulated-outage / reveal. Only holdout roles accept demo
+  actions; Reveal requires prior outage. Well and method changes atomically
+  reset the mode. Reset preserves the current well/method and clears chart
+  overlays, tooltip state and revealed truth, including repeated resets.
+- frontend/src/OutageControls.tsx: heldout-only native buttons, live mode status,
+  exact displayed date range and historical/fixture explanation. Simulate outage
+  conceals the full displayed export period; no invented outage timestamps or
+  measurements. Null readings remain missing on reveal. Fixture text explicitly
+  says no model was trained; clicks neither train nor execute a model.
+- frontend/src/WellWorkspace.tsx: one reducer drives list, map, details and chart;
+  chart epoch remount resets overlay preferences and cached tooltip state on
+  mode/selection/reset changes. Stable map callback retained.
+- frontend/src/App.tsx: workspace keyed by validated batch metadata so dataset/
+  run changes reset selection and reveal state. Loading/errors unmount it.
+- frontend/src/data/history.ts and frontend/src/HistoryChart.tsx: holdout truth
+  only enters chart payload/domain, tooltip and table in explicit reveal mode.
+  Revealed withheld readings have a distinct legend/tooltip/table heading.
+  Missing truth or reconstruction yields Missing/unavailable notices; no method
+  substitution, gap filling, error calculation or accuracy invention.
+- frontend/src/styles.css: wrapped demo controls and disabled-button styling.
+- frontend/checks/outage.test.mjs: 13 new state/privacy/edge-case tests.
+- frontend/checks/browser.mjs: desktop/mobile outage interactions, keyboard,
+  privacy, reset and new-batch tests alongside all previous regressions.
+- docs/STATUS_A.md: this evidence/handoff.
+
+Documented interpretation: A06 names an initial sensor-available state but does
+not require showing held-out truth in it. To satisfy the user's explicit
+before-reveal privacy requirement, this is a historical setup state with truth
+still hidden. Estimates remain inspectable as in A05. Reveal is gated on outage.
+A06 requires reset on well change; resetting on method change is an additional
+conservative privacy choice. No conflict required a contract or scope change.
+The outage uses the exported date range, not a fabricated missing-data interval.
+
+Actual verification (Node v24.22.1, frontend commands from frontend/):
+- `node --test --test-reporter=spec checks/batch.test.mjs checks/selection.test.mjs checks/coordinates.test.mjs checks/history.test.mjs checks/outage.test.mjs`:
+  PASS 93 tests, 0 failures, 0 skipped (80 regressions plus 13 A06). Covers
+  transition ordering, repeated cycles, invalid/nonholdout roles, same-selection
+  stability, selection/reset privacy, all six heldout/method combinations,
+  payload invariance to changed hidden truth, null/incomplete observations,
+  unavailable estimates, no batch mutation and fresh dataset initialization.
+- `npm run build`: PASS TypeScript/Vite; 676 modules; 19.17 kB CSS,
+  897.85 kB JS (264.00 kB gzip JS). Existing non-failing >500 kB chunk warning
+  remains; no warning suppression or dependency changes.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from root: PASS unchanged schema/semantic fixture validation. Not evidence of
+  model training, scientific accuracy or leakage correctness in B's pipeline.
+- Production preview via `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`;
+  `node checks/browser.mjs`: full suite PASS, including A02-A05 regressions.
+  A06 runs 24 outage/reveal/reset cycles across both heldout wells, all methods
+  and 1280px/390px layouts. Every revealed table value matches the export,
+  including nulls as Missing; hidden states have no observation path/column or
+  stale tooltip. Buttons/selection issue no new data fetches. Well/method changes
+  before/after reveal reset correctly. Enter activates outage; tooltips exclude
+  truth in outage and show explicitly labelled withheld readings after reveal.
+  All visible/train_masked wells have no demo controls. Unavailable predictions,
+  all-null truth and a newly identified batch remain safe. No browser exceptions.
+- Development via `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`;
+  `$env:ALTER_EGO_CHECK_ORIGIN='http://127.0.0.1:5173'; node checks/browser.mjs`:
+  full suite PASS, including the same 24 cycles, React StrictMode and actual
+  Fast Refresh source edit/restoration. One working map remains. 74 canceled
+  CDP interceptions during cleanup were counted separately; zero uncaught page
+  exceptions. All map tiles intercepted locally; no public tile downloads.
+  Browser runs used approved execution outside the sandbox as in earlier phases.
+- Mobile screenshot captured to Windows TEMP/alter-ego-a06-mobile.png and
+  visually reviewed: readable status/explanation and wrapped native controls.
+  Screenshot is not staged. No horizontal overflow on desktop/mobile.
+- Source review: one state source, atomic transitions (no effect-based delayed
+  hiding), remount clears comparisons/tooltips, role restriction, preserved nulls,
+  escaped data and retained fixture/synthetic/prototype labels. Results still
+  shows export notes; A07's priorities/actual-result work is not implemented.
+- Git scope/staged review: only A-owned frontend source/checks and this note;
+  no generated build files, secrets or unrelated changes. `git diff --check`
+  and `git diff --cached --check`: PASS before commit.
+
+Remaining: no known A06 blocker. Bundle-size warning is non-blocking. Full
+screen-reader certification, public tile availability and actual B model export
+integration remain PENDING, as do earlier unverified account/shared facts.
+Fixture reveal demonstrates software behavior, not measured field accuracy.
+
+A07 is ready when authorized, using the validated fixture with not_run metrics.
+Handoff unchanged: schema 1.0.0; fixture-layout-v1; synthetic-layout-six-wells;
+artifact_kind=fixture. Commit: this A06 commit, final SHA reported after creation.
+No push, merge or deployment. Run locally with `cd frontend` then
+`npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+
 ## A05 handoff - 2026-10-24 IST
 
 Phase: A05 implemented and required acceptance checks PASS on feature/person-a.

@@ -67,7 +67,7 @@ export default function App() {
         </aside>}
 
         <div className="workspace-grid">
-          {batch ? <WellWorkspace batch={batch} /> : <section className="panel" aria-labelledby="wells-title">
+          {batch ? <WellWorkspace key={JSON.stringify(batch.predictions.meta)} batch={batch} /> : <section className="panel" aria-labelledby="wells-title">
             <p className="eyebrow">01 / Wells</p>
             <h2 id="wells-title">Well list</h2>
             <p className="empty-state">Awaiting a validated dataset.</p>

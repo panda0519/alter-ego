@@ -33,6 +33,7 @@ try {
   let tileMode = 'success';
   let heldTiles = [];
   let tileRequests = 0;
+  let batchRequests = 0;
   let canceledInterceptions = 0;
   const interceptionError = error => {
     // StrictMode/refresh removes tiles while CDP is responding. The browser
@@ -68,12 +69,22 @@ try {
         return;
       }
       if (scenario === 'loading') { held.push(requestId); return; }
+      batchRequests++;
       const name = new URL(request.url).pathname.split('/').at(-1);
       void (async () => {
         if (scenario === 'valid') return send('Fetch.continueRequest', { requestId });
         let body = await readFile(new URL(`../public/data/${name}`, import.meta.url), 'utf8');
         let responseCode = 200;
         if (name === 'predictions.json') {
+          if (scenario === 'outage-unavailable' || scenario === 'outage-no-truth') {
+            const value = JSON.parse(body); const well = value.wells.find(well => well.role === 'holdout');
+            if (scenario === 'outage-no-truth') well.observations_m.fill(null);
+            else for (const method of Object.keys(well.predictions_m)) {
+              well.predictions_m[method].fill(null);
+              well.summaries[method] = { latest_depth_m: null, change_30d_m: null, priority: 'unknown', reason_codes: [] };
+            }
+            body = JSON.stringify(value);
+          }
           if (scenario === 'history-gaps') {
             const value = JSON.parse(body); value.wells[0].predictions_m.gcn_lstm.splice(5, 3, null, null, null); body = JSON.stringify(value);
           }
@@ -102,6 +113,12 @@ try {
         }
         if (scenario === 'mixed' && name === 'metrics.json') {
           const value = JSON.parse(body); value.meta.run_id = 'wrong-run'; body = JSON.stringify(value);
+        }
+        if (scenario === 'outage-unavailable' && name === 'agent_context.json') {
+          const value = JSON.parse(body); Object.assign(value.wells.find(well => well.role === 'holdout'), { latest_depth_m: null, change_30d_m: null, priority: 'unknown', reason_codes: [] }); body = JSON.stringify(value);
+        }
+        if (scenario === 'new-batch') {
+          const value = JSON.parse(body); value.meta.run_id = 'browser-test-new-run'; value.meta.dataset_id = 'browser-test-new-dataset'; body = JSON.stringify(value);
         }
         return send('Fetch.fulfillRequest', { requestId, responseCode, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(body).toString('base64') });
       })().catch(interceptionError);
@@ -290,7 +307,7 @@ try {
   assert.equal(await evaluate('document.querySelector(".history-table tbody tr td:last-child").textContent'), 'Missing');
   assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('depth increases downward'));
   async function hoverFirstHistoryPoint() {
-    await evaluate('document.querySelector(".history-panel").scrollIntoView({ block: "start" })');
+    await evaluate('document.querySelector(".history-plot").scrollIntoView({ block: "center" })');
     for (let i = 0; i < 100; i++) {
       if (await evaluate('!!document.querySelector(".history-selected .recharts-line-curve")')) break;
       await pause(100);
@@ -379,6 +396,90 @@ try {
     }
   }
   console.log('PASS browser: 390px and 1280px layouts have no horizontal overflow');
+  // A06: presentation-only, role-restricted workflow and reveal privacy.
+  async function selectWell(id) {
+    await evaluate(`([...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(id)})).click()`);
+    await waitText(`Selected well: ${id}.`);
+  }
+  async function clickDemo(id, mode) {
+    await evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
+    for (let i = 0; i < 100; i++) {
+      if (await evaluate(`document.getElementById('outage-state')?.dataset.mode === ${JSON.stringify(mode)}`)) return;
+      await pause(50);
+    }
+    throw new Error(`Demo did not reach ${mode}`);
+  }
+  async function assertHidden() {
+    assert.equal(await evaluate('document.querySelectorAll(".history-observed").length'), 0);
+    assert.equal(await evaluate('document.querySelector(".history-table thead").textContent.includes("Revealed")'), false);
+    assert.equal(await evaluate('!!document.querySelector(".history-tooltip")'), false);
+  }
+  const demoRequests = batchRequests;
+  for (const width of [1280, 390]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 700 });
+    for (const well of fixturePredictions.wells.filter(well => well.role === 'holdout')) {
+      await selectWell(well.id);
+      for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
+        await chooseMethod(method);
+        await assertHidden();
+        assert.equal(await evaluate('document.getElementById("reveal-observations").disabled'), true);
+        for (let cycle = 0; cycle < 2; cycle++) {
+          await clickDemo('simulate-outage', 'simulated-outage'); await assertHidden();
+          await clickDemo('reveal-observations', 'reveal');
+          assert.deepEqual(await evaluate('[...document.querySelectorAll(".history-table tbody tr")].map(row => row.lastElementChild.textContent)'), well.observations_m.map(value => value === null ? 'Missing' : `${value} m`));
+          assert.ok(await evaluate('document.querySelector(".history-panel").innerText.includes("Revealed withheld readings")'));
+          await clickDemo('reset-outage', 'sensor-available'); await assertHidden();
+          assert.equal(await evaluate('document.getElementById("show-idw").checked'), false);
+        }
+      }
+    }
+    assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'));
+  }
+  assert.equal(batchRequests, demoRequests, 'Demo buttons and selection cause no data requests or training call');
+  console.log('PASS browser: 24 outage/reveal/reset cycles across both held-out wells, all methods, desktop/mobile; null truth retained; no new fetches');
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await chooseMethod('idw'); await assertHidden();
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await selectWell(heldout.id); await assertHidden();
+  await clickDemo('simulate-outage', 'simulated-outage');
+  await chooseMethod('gcn_lstm'); await assertHidden();
+  assert.equal(await evaluate('document.getElementById("outage-state").dataset.mode'), 'sensor-available');
+  await evaluate('document.getElementById("simulate-outage").focus()');
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await waitText('Simulated outage');
+  await assertHidden();
+  await hoverFirstHistoryPoint();
+  assert.equal(await evaluate('document.querySelector(".history-tooltip").innerText.includes("Revealed withheld reading:")'), false);
+  await clickDemo('reveal-observations', 'reveal');
+  await hoverFirstHistoryPoint();
+  assert.ok(await evaluate('document.querySelector(".history-tooltip").innerText.includes("Revealed withheld reading:")'));
+  await clickDemo('reset-outage', 'sensor-available'); await assertHidden();
+  for (const well of fixturePredictions.wells.filter(well => well.role !== 'holdout')) {
+    await selectWell(well.id);
+    assert.equal(await evaluate('document.querySelectorAll(".outage-controls").length'), 0);
+  }
+  console.log('PASS browser: switches before/after reveal reset privacy; keyboard action and reveal/outage tooltip checks; nonheldout roles have no demo controls');
+  for (const scenario of ['outage-unavailable', 'outage-no-truth']) {
+    await navigate(scenario); await waitText('6 wells loaded'); await selectWell(heldout.id);
+    await clickDemo('simulate-outage', 'simulated-outage'); await assertHidden();
+    await clickDemo('reveal-observations', 'reveal');
+    if (scenario === 'outage-unavailable') assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('Selected-method predictions are unavailable'));
+    else {
+      await waitText('No exported observations are available');
+      assert.ok((await evaluate('[...document.querySelectorAll(".history-table tbody tr")].map(row => row.lastElementChild.textContent)')).every(value => value === 'Missing'));
+    }
+    await clickDemo('reset-outage', 'sensor-available'); await assertHidden();
+  }
+  await navigate('valid'); await waitText('6 wells loaded'); await selectWell(heldout.id);
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await navigate('new-batch'); await waitText('browser-test-new-dataset'); await selectWell(heldout.id); await assertHidden();
+  assert.equal(await evaluate('document.getElementById("outage-state").dataset.mode'), 'sensor-available');
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await evaluate('document.querySelector(".outage-controls").scrollIntoView({ block: "start" })');
+  const demoScreenshot = await send('Page.captureScreenshot', { format: 'png' });
+  await writeFile(join(tmpdir(), 'alter-ego-a06-mobile.png'), Buffer.from(demoScreenshot.data, 'base64'));
+  console.log('PASS browser: unavailable predictions, absent truth and new dataset reset safely; mobile demo screenshot captured');
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');
   console.log('PASS browser: no uncaught runtime exceptions');
   console.log(`INFO browser: ${canceledInterceptions} canceled CDP interceptions during cleanup/refresh`);

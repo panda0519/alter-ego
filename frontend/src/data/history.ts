@@ -1,6 +1,7 @@
 import type { Batch } from './models.ts';
 import { methodAvailable, resolveSelection } from './selection.ts';
 import type { Selection } from './selection.ts';
+import type { DemoMode } from './outage.ts';
 
 export interface HistoryPoint {
   date: string;
@@ -9,11 +10,11 @@ export interface HistoryPoint {
   idw: number | null;
   observed: number | null;
 }
-export interface HistoryOptions { showIdw: boolean; showObservations: boolean }
+export interface HistoryOptions { showIdw: boolean; showObservations: boolean; demoMode?: DemoMode }
 
 export function buildHistory(batch: Batch, selection: Selection, options: HistoryOptions) {
   const { well, method, available } = resolveSelection(batch, selection);
-  const observationsVisible = !!well && well.role !== 'holdout' && options.showObservations;
+  const observationsVisible = !!well && (well.role === 'holdout' ? options.demoMode === 'reveal' : options.showObservations);
   const idwVisible = !!well && !!method && method !== 'idw' && options.showIdw;
   const idwAvailable = !!well && methodAvailable(batch, well, 'idw');
   const points: HistoryPoint[] = well && method ? batch.predictions.dates.map((date, index) => ({

@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useReducer } from 'react';
 import WellMap from './WellMap';
 import HistoryChart from './HistoryChart';
+import OutageControls from './OutageControls';
+import { initialWorkspace, workspaceReducer } from './data/outage';
 import { methods } from './data/models';
 import type { Batch, Role } from './data/models';
-import { depthLabel, initialSelection, methodAvailable, resolveSelection } from './data/selection';
+import { depthLabel, methodAvailable, resolveSelection } from './data/selection';
 
 const roleDescriptions: Record<Role, string> = {
   visible: 'Visible donor well. Previous-day observations may supply reconstruction inputs.',
@@ -12,8 +14,9 @@ const roleDescriptions: Record<Role, string> = {
 };
 
 export default function WellWorkspace({ batch }: { batch: Batch }) {
-  const [selection, setSelection] = useState(() => initialSelection(batch));
-  const selectWell = useCallback((wellId: string) => setSelection(current => ({ ...current, wellId })), []);
+  const [state, dispatch] = useReducer(workspaceReducer, batch, initialWorkspace);
+  const { selection, mode } = state;
+  const selectWell = useCallback((wellId: string) => dispatch({ type: 'well', wellId }), []);
   const { well, method, available, summary } = resolveSelection(batch, selection);
   const fixture = batch.predictions.meta.artifact_kind === 'fixture';
   return (
@@ -37,7 +40,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
           <label htmlFor="reconstruction-method">Reconstruction method</label>
           <select id="reconstruction-method" value={method ?? ''}
             aria-describedby="method-help"
-            onChange={event => setSelection(current => ({ ...current, method: event.target.value }))}>
+            onChange={event => dispatch({ type: 'method', method: event.target.value })}>
             <option value="" disabled>Choose a supported method</option>
             {methods.map(option => <option key={option} value={option}>
               {option}{well && !methodAvailable(batch, well, option) ? ' (unavailable)' : fixture ? ' (illustrative)' : ''}
@@ -49,6 +52,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
             <h3 id="detail-title">{well.id} / {method}</h3>
             <p role="status" aria-live="polite">Selected well: {well.id}. Selected method: {method}.</p>
             <p>{roleDescriptions[well.role]}</p>
+            <OutageControls batch={batch} well={well} mode={mode} onAction={action => dispatch({ type: 'demo', action, role: well.role })} />
             {!available && <p className="notice" role="status">Method unavailable for this well. No estimates are shown for this selection.</p>}
             <dl className="metadata">
               <div><dt>Well ID</dt><dd data-field="well-id">{well.id}</dd></div>
@@ -68,7 +72,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
       </div>
     </section>
     <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} />
-    <HistoryChart batch={batch} selection={selection} />
+    <HistoryChart key={state.chartEpoch} batch={batch} selection={selection} demoMode={mode} />
     </>
   );
 }
