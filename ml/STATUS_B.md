@@ -24,6 +24,6 @@ Nodus: PENDING. `.venv-tools/bin/nodus` is `nodus 0.1.45`. `whoami`, `get jobs`,
 
 Request for A: do not treat `runs/lambda01` or `runs/lambda1` as a selected physics model. Their kept weights are the lambda-0 warmup. The b09 folder is still the latest schema batch. No schema change.
 
-Git: `feature/model`. Phase 4 handoff commit SHA is filled below after `git commit`. Parent `473bd2b4ba3c791028c805ea743e23d9a6281b4f`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
+Git: `feature/model` handoff `a84cb7b0ef450e47d7bf40d3d9ef7c0081a018f2`. Parent `473bd2b4ba3c791028c805ea743e23d9a6281b4f`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
 
 Next: stop before final evaluation and selection. Nodus login remains a separate operator step.

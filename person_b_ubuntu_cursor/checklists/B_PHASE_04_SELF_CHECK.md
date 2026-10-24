@@ -11,4 +11,4 @@ Filled 24 October 2026 from this checkout on `feature/model`. Parent `473bd2b4ba
 | Nodus execution | Retrieve actual job/checkpoint/log/config/code SHA | Meaningful training with actual image/environment evidence | Not run. `nodus explain job` also exit 1, so the server schema was not read. `nodus run --help` was read locally. No job id | PENDING |
 | Blocked or failed work | Review missing account/capacity and failed runs | Explicit PENDING/failed status; no invented IDs | Login is the blocker. Local physics and both positive-lambda trains finished. No job id was invented. MCP `user-nodus` was in error and was not authenticated from here | PASS |
 
-Detail record: `ml/B_PHASE_4_SELF_CHECK.md`. Handoff commit SHA is in `ml/STATUS_B.md` after the commit.
+Detail record: `ml/B_PHASE_4_SELF_CHECK.md`. Handoff commit `a84cb7b0ef450e47d7bf40d3d9ef7c0081a018f2`.

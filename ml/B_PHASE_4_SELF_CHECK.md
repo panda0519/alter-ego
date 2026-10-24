@@ -16,6 +16,6 @@ Date: 24 October 2026. Branch `feature/model`. Parent `473bd2b4ba3c791028c805ea7
 | Export validators | `scripts/validate_exports.py` on `contracts/fixtures` and `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42` | Previous batches still pass | Both exited 0 with the PASS line. No Phase 4 export folder was created. `prototype.yaml` sha256 remains `859ac9e4014c4972132233aed5ad1fec1be1ad4cbebeaa7c0ebbac3e32991e32` | PASS |
 | Nodus account | `nodus whoami`, `nodus get jobs`, `nodus explain job` | Org, credits, schema, or an explicit block | All three exit 1, `not logged in`. No `~/.nodus` and no `NODUS_` variables. No job id and no cost. Detail in `ml/B_PHASE_4_NODUS.md` | PENDING |
 | Nodus execution | Submit and retrieve a bounded GPU job | Checkpoints and logs from Nodus | Not run. No made-up job id | PENDING |
-| Handoff commit | Git commit on `feature/model` | A real SHA, no push | Recorded in `ml/STATUS_B.md` after the commit | PASS |
+| Handoff commit | Git commit on `feature/model` | A real SHA, no push | `a84cb7b0ef450e47d7bf40d3d9ef7c0081a018f2`. Not pushed | PASS |
 
 Holdout test MAE was not computed for the positive-lambda runs. The lambda-0 export `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42` remains the latest four-file batch.
