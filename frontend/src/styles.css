@@ -27,6 +27,16 @@ button { margin-top: 12px; padding: 8px 16px; border: 1px solid #193b40; border-
 .selection-panel { grid-column: 1 / -1; }
 .map-panel { grid-column: 1 / -1; }
 .history-panel { grid-column: 1 / -1; }
+.priority-panel, .results-panel { grid-column: 1 / -1; }
+.priority-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; padding-left: 24px; }
+.priority-list li { padding: 12px; border: 1px solid #ccd9d4; border-radius: 6px; overflow-wrap: anywhere; }
+.priority-list p { margin-block: 8px; }
+.priority-list button[aria-pressed="true"], .result-card button[aria-pressed="true"] { outline: 3px solid #a8cbc1; outline-offset: 2px; }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 16px; }
+.result-card { padding: 16px; border: 1px solid #ccd9d4; border-radius: 6px; overflow-wrap: anywhere; }
+.result-card h3 { margin-top: 0; }
+.result-card button { max-width: 100%; overflow-wrap: anywhere; }
+.result-card .metadata { grid-template-columns: 1fr; }
 .outage-controls { margin-block: 20px; padding: 16px; border: 1px solid #b4c7c0; border-radius: 6px; background: #f8faf9; }
 .outage-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 button:disabled { opacity: 0.55; cursor: default; }

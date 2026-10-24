@@ -2,6 +2,7 @@ import { useCallback, useReducer } from 'react';
 import WellMap from './WellMap';
 import HistoryChart from './HistoryChart';
 import OutageControls from './OutageControls';
+import PriorityResults from './PriorityResults';
 import { initialWorkspace, workspaceReducer } from './data/outage';
 import { methods } from './data/models';
 import type { Batch, Role } from './data/models';
@@ -49,7 +50,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
           <p id="method-help">{fixture ? 'Fixture series are illustrative, including neural methods. No model has been trained.' : 'Methods use the supplied export only. Unavailable methods are never replaced by another method.'}</p>
           {(!well || !method) && <p role="alert">Invalid selection. Choose a well and a supported method to view details.</p>}
           {well && method && <section aria-labelledby="detail-title" className="well-details">
-            <h3 id="detail-title">{well.id} / {method}</h3>
+            <h3 id="detail-title" tabIndex={-1}>{well.id} / {method}</h3>
             <p role="status" aria-live="polite">Selected well: {well.id}. Selected method: {method}.</p>
             <p>{roleDescriptions[well.role]}</p>
             <OutageControls batch={batch} well={well} mode={mode} onAction={action => dispatch({ type: 'demo', action, role: well.role })} />
@@ -73,6 +74,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
     </section>
     <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} />
     <HistoryChart key={state.chartEpoch} batch={batch} selection={selection} demoMode={mode} />
+    <PriorityResults batch={batch} selectedId={well?.id} method={method} onSelectWell={selectWell} onSelectMethod={method => dispatch({ type: 'method', method })} />
     </>
   );
 }

@@ -85,11 +85,11 @@ export default function App() {
             <p className="empty-state">Awaiting a validated dataset.</p>
           </section>}
 
-          <section className="panel" aria-labelledby="results-title">
+          {!batch && <section className="panel" aria-labelledby="results-title">
             <p className="eyebrow">04 / Evaluation</p>
             <h2 id="results-title">Results</h2>
-            <p className="empty-state">{batch ? batch.metrics.evaluation.notes : 'Awaiting a validated dataset.'}</p>
-          </section>
+            <p className="empty-state">Awaiting a validated dataset.</p>
+          </section>}
         </div>
       </main>
 

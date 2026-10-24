@@ -1,5 +1,96 @@
 # Person A status
 
+## A07 handoff - 2026-10-24 IST
+
+Phase: A07 implemented; required acceptance checks PASS on feature/person-a.
+User confirms A00-A06 pushed; no push performed in this phase. Read AGENTS.md,
+README_FIRST.md, MASTER_PLAN.md, docs/COMMON_DECISIONS.md, this status,
+prompts/A07.md, relevant contracts/schemas/fixtures and frontend source/tests,
+plus model config. A08 read only for the next handoff boundary.
+
+Changed files:
+- frontend/src/PriorityResults.tsx: exported per-method priority list and all
+  three evaluation result cards. Displays exported reasons, estimates, 30-day
+  change, role and as-of date; documented prototype rules and warning disclaimer.
+  Priority buttons select the corresponding well and focus its detail heading.
+  Result buttons select the exact method using the existing reducer. Run-level
+  metrics are labelled as aggregate holdout results, not per-well scores.
+  Fixture/real/synthetic identity, run ID and generated/as-of dates remain visible.
+  not_run/failed/fixture metrics and counts render Unavailable, never zero error.
+  Only validated nonfixture completed exports can report MAE/RMSE/counts/lambda.
+  Physics method retains exact identity and the water-balance assumption caveat.
+- frontend/src/data/results.ts: projection of exported summaries/results;
+  deterministic display order high/watch/normal/unknown, descending exported
+  change then stable ID. No recomputation of priority flags, errors, rankings
+  from raw readings, training, or method substitution. Unavailable summaries
+  render unknown safely. Projections never read observations_m.
+- frontend/src/WellWorkspace.tsx: shared well/method state wired to priorities
+  and results; detail heading keyboard-focusable. Existing atomic A06 reset
+  rules apply when these controls change wells/methods.
+- frontend/src/App.tsx: results placeholder only before a validated batch loads.
+- frontend/src/styles.css: responsive priority/result card grids and selected
+  button styles, wrapping long method IDs/reasons on mobile.
+- frontend/checks/results.test.mjs: 9 new acceptance tests.
+- frontend/checks/browser.mjs: A07 selection/status/privacy/keyboard checks and
+  desktop/mobile captures alongside previous regression/failure simulations.
+- docs/STATUS_A.md: verified evidence and handoff.
+
+Actual checks (Node v24.22.1, frontend commands from frontend/):
+- `node --test --test-reporter=spec checks/batch.test.mjs checks/selection.test.mjs checks/coordinates.test.mjs checks/history.test.mjs checks/outage.test.mjs checks/results.test.mjs`:
+  PASS 102 tests, 0 failures/skips (93 regressions + 9 A07). Covers exact method
+  summary/reason identity, documented order, category preservation instead of
+  flag recalculation, unavailable summaries, stable ID ties, fixture suppression,
+  completed/failed/not_run rendering, zero preservation, physics identity and
+  invariance to changed withheld readings. Source batches are not mutated.
+- Completed/failed branch coverage uses explicitly TEST ONLY in-memory model
+  export responses with zero-error sentinel values/counts. These are UI test
+  inputs, not scientific outputs; never saved under public/data, shared fixtures
+  or model artifacts. Published fixture metrics remain unchanged and not_run.
+  Actual completed model-result integration remains PENDING B's real handoff.
+- `npm run build`: PASS TypeScript/Vite; 678 modules; 19.91 kB CSS,
+  903.72 kB JS (265.36 kB gzip JS). Existing non-failing >500 kB chunk warning
+  remains. No dependencies added/upgraded or warning threshold changed.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from root: PASS schema/semantic consistency. Not evidence of scientific accuracy.
+- Production: `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`
+  then `node checks/browser.mjs`: full suite PASS. All 18 priority well/method
+  pairs show their exported fields and open matching well/map/chart selections.
+  All fixture result cells are Unavailable. Changing method through a result
+  card or well through priorities obeys A06 reveal reset; no hidden truth appears.
+  Enter activates a priority and focuses the detail heading. Test-only validated
+  completed/failed/not_run statuses render correctly, zero remains 0 m, unavailable
+  methods show unknown priorities, and an attempted completed fixture is rejected
+  by validation before result cards appear. All A02-A06 regressions pass,
+  including 24 desktop/mobile outage/reveal/reset cycles, map failure/retry,
+  chart null gaps/tooltips and dataset reset. Zero uncaught browser exceptions.
+- Development: `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`, then
+  `$env:ALTER_EGO_CHECK_ORIGIN='http://127.0.0.1:5173'; node checks/browser.mjs`:
+  full suite PASS, including StrictMode and actual Fast Refresh source edit/
+  restoration. 75 canceled CDP interceptions during cleanup counted separately;
+  zero uncaught page exceptions. Approved Edge execution outside sandbox; all
+  map tiles intercepted locally, no public tile downloads.
+- Browser layout/screenshot checks at 1280px/390px: no horizontal overflow.
+  Reviewed priority and results panels at both widths for readable status/labels,
+  wrapping and distinct method identity. TEMP files alter-ego-a07-{priority-panel,
+  results-panel}-{1280,390}.png are local QA artifacts, not staged.
+- Source review: escaped data labels, semantic lists/headings/definition lists,
+  native keyboard buttons, one selection state and preserved reveal sanitization.
+- Git scope review: only A-owned frontend source/checks and this status; shared
+  contracts, B files, dependency manifest/lock and all public fixtures unchanged.
+  No generated build files/secrets staged. `git diff --check` and staged check
+  PASS before commit. No push, merge or deploy.
+
+Remaining: no A07 blocker. Bundle-size warning is non-blocking; actual completed
+model-export integration, full screen-reader certification and live public tiles
+remain PENDING. Fixtures demonstrate interface behavior, not field accuracy.
+
+A08 frontend prerequisites are ready when authorized. Real Agent37 account/
+instance/runtime access and a deployed agent_context.json URL still require
+verification; no genuine fetch/briefing or platform readiness is claimed here.
+No A08 implementation started. Handoff unchanged: schema 1.0.0;
+fixture-layout-v1; synthetic-layout-six-wells; artifact_kind=fixture; not_run.
+Commit: this A07 commit; final SHA reported after creation.
+
 ## A06 handoff - 2026-10-24 IST
 
 Phase: A06 implemented; required acceptance checks PASS on feature/person-a.

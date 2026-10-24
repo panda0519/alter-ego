@@ -120,6 +120,18 @@ try {
         if (scenario === 'new-batch') {
           const value = JSON.parse(body); value.meta.run_id = 'browser-test-new-run'; value.meta.dataset_id = 'browser-test-new-dataset'; body = JSON.stringify(value);
         }
+        if (scenario === 'result-statuses' || scenario === 'fixture-metric-claim') {
+          // TEST ONLY: branch-coverage responses, never saved as scientific output.
+          const value = JSON.parse(body);
+          if (scenario === 'result-statuses') {
+            value.meta.artifact_kind = 'model_output'; value.meta.caption = 'TEST ONLY - no experiment; metric display branch coverage';
+          }
+          if (name === 'metrics.json') {
+            Object.assign(value.methods.idw, { status: 'completed', validation_mae_m: 0, test_mae_m: 0, test_rmse_m: 0, validation_pairs: 1, test_pairs: 1, test_wells: 1 });
+            if (scenario === 'result-statuses') value.methods.gcn_lstm.status = 'failed';
+          }
+          body = JSON.stringify(value);
+        }
         return send('Fetch.fulfillRequest', { requestId, responseCode, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(body).toString('base64') });
       })().catch(interceptionError);
     }
@@ -480,6 +492,56 @@ try {
   const demoScreenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile(join(tmpdir(), 'alter-ego-a06-mobile.png'), Buffer.from(demoScreenshot.data, 'base64'));
   console.log('PASS browser: unavailable predictions, absent truth and new dataset reset safely; mobile demo screenshot captured');
+  await navigate('valid'); await waitText('6 wells loaded');
+  for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
+    await chooseMethod(method);
+    assert.deepEqual(await evaluate('[...document.querySelectorAll("[data-priority-id]")].map(row => row.dataset.priorityId)'), ['SYN-006','SYN-005','SYN-004','SYN-003','SYN-002','SYN-001']);
+    for (const well of fixturePredictions.wells) {
+      const summary = well.summaries[method];
+      const text = await evaluate(`document.querySelector('[data-priority-id="${well.id}"]').innerText`);
+      for (const value of [summary.priority, `${summary.latest_depth_m} m`, `${summary.change_30d_m} m`, ...summary.reason_codes]) assert.ok(text.includes(value));
+      await evaluate(`document.querySelector('[data-priority-id="${well.id}"] button').click()`);
+      await waitText(`Selected well: ${well.id}.`);
+      assert.equal((await readDetails()).method, method);
+      assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), well.id);
+      await waitText(`History: ${well.id} / ${method}`);
+    }
+  }
+  assert.ok((await evaluate('[...document.querySelectorAll("[data-metric]")].map(node => node.textContent)')).every(value => value === 'Unavailable'));
+  assert.ok((await evaluate('document.querySelector(".results-panel").innerText')).includes('artifact_kind=fixture'));
+  assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 3);
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await evaluate('document.querySelector("[data-result-method=idw] button").click()');
+  await chooseMethod('idw'); await assertHidden();
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  await evaluate(`document.querySelector('[data-priority-id="${heldout.id}"] button').click()`);
+  await waitText(`Selected well: ${heldout.id}.`); await assertHidden();
+  await evaluate('document.querySelector("[data-priority-id=SYN-004] button").focus()');
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await waitText('Selected well: SYN-004.');
+  assert.equal(await evaluate('document.activeElement.id'), 'detail-title');
+  console.log('PASS browser: all exported priority fields/order across methods; matching well/map/chart; fixture metrics unavailable; results buttons preserve reveal privacy; keyboard priority focus');
+  for (const width of [1280, 390]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 700 });
+    for (const panel of ['priority-panel', 'results-panel']) {
+      await evaluate(`document.querySelector('.${panel}').scrollIntoView({ block: 'start' })`);
+      await pause(100);
+      assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'));
+      const capture = await send('Page.captureScreenshot', { format: 'png' });
+      await writeFile(join(tmpdir(), `alter-ego-a07-${panel}-${width}.png`), Buffer.from(capture.data, 'base64'));
+    }
+  }
+  await navigate('result-statuses'); await waitText('TEST ONLY - no experiment');
+  assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testMae]").textContent'), '0 m');
+  assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testPairs]").textContent'), '1');
+  for (const method of ['gcn_lstm', 'gcn_lstm_physics']) assert.equal(await evaluate(`document.querySelector('[data-result-method=${method}] [data-metric=testMae]').textContent`), 'Unavailable');
+  assert.ok((await evaluate('document.querySelector("[data-result-method=gcn_lstm_physics]").innerText')).includes('water-balance regulariser (gcn_lstm_physics)'));
+  await chooseMethod('gcn_lstm');
+  assert.ok((await evaluate('[...document.querySelectorAll("[data-priority-id]")].map(row => row.innerText)')).every(text => text.includes('unknown')));
+  await navigate('fixture-metric-claim'); await waitText('fixture metrics must remain not_run');
+  assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 0);
+  console.log('PASS browser: test-only validated completed/failed/not_run rendering, zero preservation, unavailable priorities and rejection of fixture accuracy claims; desktop/mobile screenshots captured');
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');
   console.log('PASS browser: no uncaught runtime exceptions');
   console.log(`INFO browser: ${canceledInterceptions} canceled CDP interceptions during cleanup/refresh`);
