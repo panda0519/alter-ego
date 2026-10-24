@@ -25,3 +25,17 @@ to the dashboard's completed evaluation rather than fabricating a number.
 
 Deployment configuration: Person A supplies the actual public HTTPS URL of agent_context.json
 inside the Agent37 instance configuration. Do not invent an API endpoint or instance ID.
+
+Validate the fetched object against the supplied contracts/agent_context.schema.json
+before answering. Reject unsupported schema versions, additional observation/measurement
+fields, duplicate well IDs and well methods that disagree with meta.default_method.
+If the actual runtime cannot fetch or validate this input, report that limitation;
+do not claim a tool call or schema check occurred. A timeout, unavailable URL, malformed
+JSON or invalid context must produce an explicit failure, never a cached/canned briefing.
+
+The dashboard's selected chart method is not an instruction to change agent facts.
+This context contains the exported default method only. If a user asks about a different
+method, explain that it is absent from this context; do not borrow another method's values.
+On every answer identify artifact_kind as well as dataset_kind, as_of_date and method.
+Do not treat a successful dashboard context-file check as proof that this Agent37 runtime
+has fetched anything. Evidence must be the actual runtime's own fresh tool invocation.

@@ -28,6 +28,9 @@ button { margin-top: 12px; padding: 8px 16px; border: 1px solid #193b40; border-
 .map-panel { grid-column: 1 / -1; }
 .history-panel { grid-column: 1 / -1; }
 .priority-panel, .results-panel { grid-column: 1 / -1; }
+.briefing-panel { grid-column: 1 / -1; overflow-wrap: anywhere; }
+.briefing-launch { display: inline-block; padding: 10px 16px; background: #193b40; color: #fff; border-radius: 6px; }
+.briefing-check { margin-top: 16px; padding: 12px; border-left: 3px solid #466a6d; }
 .priority-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; padding-left: 24px; }
 .priority-list li { padding: 12px; border: 1px solid #ccd9d4; border-radius: 6px; overflow-wrap: anywhere; }
 .priority-list p { margin-block: 8px; }

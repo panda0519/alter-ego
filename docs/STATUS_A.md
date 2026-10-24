@@ -1,5 +1,118 @@
 # Person A status
 
+## A08 local preparation handoff - 2026-10-24 IST
+
+Local A08 frontend preparation: COMPLETE; applicable local checks PASS.
+Agent37 account: VERIFIED by explicit user confirmation (not a tool login test).
+Live Agent37 integration: PENDING / OPTIONAL. User confirms no active instance
+or public URL and will provide them later. Core application: INDEPENDENT OF
+AGENT37, including ML export integration and deployment. Disabled by default;
+no instance created, service configuration changed or charges incurred.
+
+Scope conflict explicitly recorded: MASTER_PLAN.md's required demo includes an
+Agent37 briefing, and prompts/A08.md requires genuine hosted fetch/answer evidence.
+The user's latest explicit instruction makes Agent37 an OPTIONAL BACKUP, overriding
+that mandatory core requirement. Shared plan/contracts are not silently rewritten.
+The original live acceptance has NOT passed; it remains PENDING / OPTIONAL.
+No live response, genuine agent fetch or sponsor integration is claimed.
+
+Read AGENTS.md, README_FIRST.md, MASTER_PLAN.md, COMMON_DECISIONS.md, this status,
+prompts/A08.md, agent/INSTRUCTIONS.md, context schema/fixture and relevant frontend
+contracts/source/tests, plus model config. A09 read only for the handoff boundary.
+
+Prerequisite investigation before implementation:
+- No Agent37 tools/instance URL were available in connected tool discovery.
+- Existing VITE_AGENT37_URL example was empty; project/process configuration
+  presence check found no configured value. No private values were printed.
+- No public deployed context URL or deployment configuration/resource was found
+  in project source. Existing local /data/agent_context.json is available.
+- Render get_selected_workspace returned no workspace selected; list_workspaces
+  found My Workspace. No service reads or workspace selection were attempted
+  without confirmation. The Render monitor skill requires following its access
+  reference to "verify the intended workspace" before service reads:
+  C:/Users/Admin/.codex/plugins/cache/openai-curated-remote/app-6a624c56bfe081918f7544f7d58f6faf/1.0.2/skills/render-monitor/SKILL.md
+  This limits deployment inspection, not the independent frontend work.
+- User subsequently confirmed the account exists and has no instance/public URL.
+
+Changed files:
+- frontend/src/AgentBriefing.tsx: modular optional-service panel, disabled native
+  launch when unconfigured, selected-well question and dashboard/default-context
+  method distinction. Configured public native URL opens a separate tab with
+  noopener/noreferrer; no prompt, selection or data appended/sent automatically.
+  Suggested questions are not generated answers. Fixture/type/run/dates visible.
+  Local context check has idle/loading/success/unavailable/invalid-response/
+  timeout/network-error/retry states. Success explicitly means exported context
+  consistency, never Agent37 success. Failures leave the dashboard usable.
+- frontend/src/data/briefing.ts: public HTTPS configuration validation (no embedded
+  credentials/query/fragment), on-demand credential-free no-store GET, no redirects,
+  eight-second timeout and cancellation cleanup. No chat API or model endpoint.
+- frontend/src/data/loadBatch.ts: reuses the existing Ajv context validator;
+  fetched context must match loaded batch metadata, IDs, summaries and limitations.
+  Extra observation fields, stale/mismatched context and malformed data rejected.
+- frontend/src/vite-env.d.ts and .env.example: typed Vite public URL configuration;
+  VITE_AGENT37_URL and VITE_AGENT_CONTEXT_URL remain BLANK. No fake runtime URLs.
+  Without a deployed context URL, the optional check reads the local export only.
+- frontend/src/WellWorkspace.tsx and styles.css: selected well/method passed to
+  independent responsive panel; no changes to chart reveal state or core loading.
+- agent/INSTRUCTIONS.md: strict context/identity/privacy checks, honest failure/
+  timeout behavior, fresh actual-tool evidence, default-method limitation.
+- agent/SETUP.md: optional activation configuration and exact missing prerequisites;
+  original live three-question/fetch-failure acceptance checklist stays pending.
+- frontend/checks/briefing.test.mjs and checks/browser.mjs: local preparation and
+  regression checks only; no mock agent responses or purported hosted answers.
+- docs/STATUS_A.md: this verified status/conflict/handoff.
+
+Actual checks (Node v24.22.1; frontend commands from frontend/):
+- `node --test --test-reporter=spec checks/batch.test.mjs checks/selection.test.mjs checks/coordinates.test.mjs checks/history.test.mjs checks/outage.test.mjs checks/results.test.mjs checks/briefing.test.mjs`:
+  PASS 118 tests, 0 failures/skips (102 regressions + 16 A08). Covers absent/invalid
+  URL configuration, credential-bearing URL rejection, context-only request with
+  no cookies/auth/body, matching schema/batch, stale/duplicate/mismatched context,
+  added observation fields, empty/bad JSON, missing file, network error, timeout
+  and cancellation. URL parser test strings are test inputs, not configured or
+  contacted services; no fake URL/credential is supplied as an actual endpoint.
+- `npm run build`: PASS TypeScript/Vite; 680 modules; 20.14 kB CSS and
+  909.71 kB JS (267.17 kB gzip JS). Existing non-failing >500 kB warning remains.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from root: PASS unchanged fixture/schema/semantic checks; no trained result.
+- Production preview `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`;
+  final `node checks/browser.mjs`: full suite PASS including optional/disabled
+  message, keyboard context check, one fresh context-only GET, explicit non-agent
+  success label, well/default-method distinction, context failure simulations
+  (invalid JSON, missing, stale, added observations, network, timeout), loading,
+  retry, responsive captures and zero uncaught runtime exceptions. All A02-A07
+  regressions pass, including 24 outage/reveal/reset cycles and privacy checks.
+- Development `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort` then
+  `$env:ALTER_EGO_CHECK_ORIGIN='http://127.0.0.1:5173'; node checks/browser.mjs`:
+  full suite PASS including StrictMode/Fast Refresh, context states and previous
+  regressions; 84 canceled CDP interceptions counted separately, zero uncaught
+  page exceptions. Final optional wording was subsequently verified in production.
+  Browser execution used approved sandbox escalation; all map tiles intercepted.
+- 1280px/390px layout checks: no horizontal overflow. Reviewed desktop/mobile
+  briefing screenshots from TEMP/alter-ego-a08-{1280,390}.png. Adjusted capture
+  timing after resize so mobile capture shows the briefing rather than preceding
+  content. Screenshots are local QA artifacts, not staged integration evidence.
+- Source/privacy review: no model calls, no automatic Agent37 requests, no
+  invented responses, no exposed keys, no measured/withheld readings in context
+  requests even after chart reveal. Existing batch contracts/fixtures, dependencies
+  and B-owned files unchanged. No generated files/secrets staged. Working and
+  staged `git diff --check`: PASS before commit.
+
+Still PENDING for optional live activation: real public instance URL, actual
+runtime fetch/validation tools and provider access, deployed public matching
+agent_context.json URL, genuine three-question answers and fetch-failure evidence.
+No cross-origin native agent response lifecycle can be observed by this static
+dashboard; local context states do not substitute for hosted-service acceptance.
+Render deployment inspection awaits workspace confirmation. Full screen-reader
+certification and actual B model-export integration also remain PENDING.
+
+A09 can begin when authorized, independently of Agent37. Its B complete export,
+Render workspace/repository authorization and deployment checks remain its own
+prerequisites. No A09 implementation, push, merge or deployment performed here.
+Handoff unchanged: schema 1.0.0; fixture-layout-v1; synthetic-layout-six-wells;
+artifact_kind=fixture. Commit: this A08 local-preparation commit, SHA reported
+after creation. User's optional-backup decision is recorded above, not treated
+as evidence that the original live integration checks passed.
+
 ## A07 handoff - 2026-10-24 IST
 
 Phase: A07 implemented; required acceptance checks PASS on feature/person-a.

@@ -3,6 +3,7 @@ import WellMap from './WellMap';
 import HistoryChart from './HistoryChart';
 import OutageControls from './OutageControls';
 import PriorityResults from './PriorityResults';
+import AgentBriefing from './AgentBriefing';
 import { initialWorkspace, workspaceReducer } from './data/outage';
 import { methods } from './data/models';
 import type { Batch, Role } from './data/models';
@@ -75,6 +76,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
     <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} />
     <HistoryChart key={state.chartEpoch} batch={batch} selection={selection} demoMode={mode} />
     <PriorityResults batch={batch} selectedId={well?.id} method={method} onSelectWell={selectWell} onSelectMethod={method => dispatch({ type: 'method', method })} />
+    <AgentBriefing context={batch.agent_context} selectedId={well?.id} method={method} />
     </>
   );
 }

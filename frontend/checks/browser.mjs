@@ -34,6 +34,7 @@ try {
   let heldTiles = [];
   let tileRequests = 0;
   let batchRequests = 0;
+  let heldContextChecks = [];
   let canceledInterceptions = 0;
   const interceptionError = error => {
     // StrictMode/refresh removes tiles while CDP is responding. The browser
@@ -75,6 +76,14 @@ try {
         if (scenario === 'valid') return send('Fetch.continueRequest', { requestId });
         let body = await readFile(new URL(`../public/data/${name}`, import.meta.url), 'utf8');
         let responseCode = 200;
+        if (name === 'agent_context.json' && scenario.startsWith('agent-')) {
+          if (scenario === 'agent-network') return send('Fetch.failRequest', { requestId, errorReason: 'InternetDisconnected' });
+          if (scenario === 'agent-delay') { heldContextChecks.push(requestId); return; }
+          if (scenario === 'agent-invalid') body = '{';
+          if (scenario === 'agent-missing') { responseCode = 404; body = ''; }
+          if (scenario === 'agent-mismatch') { const value = JSON.parse(body); value.meta.run_id = 'wrong'; body = JSON.stringify(value); }
+          if (scenario === 'agent-truth-leak') { const value = JSON.parse(body); value.wells[0].observations_m = [1]; body = JSON.stringify(value); }
+        }
         if (name === 'predictions.json') {
           if (scenario === 'outage-unavailable' || scenario === 'outage-no-truth') {
             const value = JSON.parse(body); const well = value.wells.find(well => well.role === 'holdout');
@@ -542,6 +551,55 @@ try {
   await navigate('fixture-metric-claim'); await waitText('fixture metrics must remain not_run');
   assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 0);
   console.log('PASS browser: test-only validated completed/failed/not_run rendering, zero preservation, unavailable priorities and rejection of fixture accuracy claims; desktop/mobile screenshots captured');
+  await navigate('valid'); await waitText('6 wells loaded');
+  assert.equal(await evaluate('document.querySelectorAll(".briefing-launch").length'), 0);
+  assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Agent37 instance is not configured'));
+  assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Optional backup service'));
+  const priorCheckRequests = batchRequests;
+  async function contextState(kind) {
+    for (let i = 0; i < 120; i++) {
+      if (await evaluate(`document.querySelector('.briefing-check')?.dataset.checkState === ${JSON.stringify(kind)}`)) return;
+      await pause(100);
+    }
+    throw new Error(`Context file check did not reach ${kind}`);
+  }
+  await evaluate('document.getElementById("check-agent-context").focus()');
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await contextState('success');
+  assert.equal(batchRequests, priorCheckRequests + 1);
+  assert.ok((await evaluate('document.querySelector(".briefing-check").innerText')).includes('not an Agent37 fetch'));
+  await selectWell(heldout.id); await chooseMethod('gcn_lstm_physics');
+  assert.ok((await evaluate('document.querySelector(".briefing-selection").innerText')).includes(`Dashboard well: ${heldout.id}. Dashboard method: gcn_lstm_physics. Agent context method: idw.`));
+  await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
+  assert.ok((await evaluate('document.querySelector(".briefing-questions").innerText')).includes(`Explain well ${heldout.id}`));
+  assert.equal(await evaluate('document.querySelector(".briefing-panel").innerText.includes("observations_m")'), false);
+  for (const [mode, kind] of [['agent-invalid','invalid-response'], ['agent-missing','unavailable'], ['agent-mismatch','invalid-response'], ['agent-truth-leak','invalid-response'], ['agent-network','network-error'], ['agent-delay','timeout']]) {
+    scenario = mode;
+    await evaluate('document.getElementById("check-agent-context").click()');
+    if (mode === 'agent-delay') {
+      await contextState('loading');
+      assert.equal(await evaluate('document.getElementById("check-agent-context").disabled'), true);
+    }
+    await contextState(kind);
+    assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Live Agent37 integration has not been verified'));
+    assert.equal((await readDetails())['well-id'], heldout.id);
+  }
+  for (const requestId of heldContextChecks) await send('Fetch.failRequest', { requestId, errorReason: 'Aborted' }).catch(() => {});
+  heldContextChecks = [];
+  scenario = 'valid';
+  await evaluate('document.getElementById("check-agent-context").click()'); await contextState('success');
+  for (const width of [1280, 390]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 700 });
+    await pause(250);
+    await evaluate('document.querySelector(".briefing-panel").scrollIntoView({ block: "start" })');
+    await pause(150);
+    assert.ok(await evaluate('document.querySelector(".briefing-panel").getBoundingClientRect().top < window.innerHeight'));
+    assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'));
+    const capture = await send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(join(tmpdir(), `alter-ego-a08-${width}.png`), Buffer.from(capture.data, 'base64'));
+  }
+  console.log('PASS browser: A08 preparation only - missing instance; keyboard on-demand context check; selected-well/default-method distinction; invalid/stale/leaking/missing/network/timeout/retry states; no fabricated agent reply; responsive captures');
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');
   console.log('PASS browser: no uncaught runtime exceptions');
   console.log(`INFO browser: ${canceledInterceptions} canceled CDP interceptions during cleanup/refresh`);

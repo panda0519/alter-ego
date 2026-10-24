@@ -26,6 +26,26 @@ function ensure(condition: boolean, message: string): asserts condition {
   if (!condition) throw new BatchError('invalid', message);
 }
 
+export function validateAgentContext(raw: unknown, expected: Batch['agent_context']): Batch['agent_context'] {
+  const validate = validators.agent_context;
+  if (!validate(raw)) throw new BatchError('invalid', `agent_context.json: ${validate.errors?.[0]?.instancePath || '/'} ${validate.errors?.[0]?.message || 'invalid context'}.`);
+  const context = raw as Batch['agent_context'];
+  for (const key of Object.keys(expected.meta) as (keyof Metadata)[]) {
+    ensure(context.meta[key] === expected.meta[key], `agent_context.json: metadata mismatch at ${key}.`);
+  }
+  const ids = new Set(context.wells.map(well => well.id));
+  ensure(ids.size === context.wells.length && context.wells.length === expected.wells.length, 'agent_context.json: well IDs do not match the loaded batch.');
+  for (const well of expected.wells) {
+    const received = context.wells.find(item => item.id === well.id);
+    ensure(!!received, 'agent_context.json: well IDs do not match the loaded batch.');
+    for (const key of Object.keys(well) as (keyof typeof well)[]) {
+      ensure(JSON.stringify(received[key]) === JSON.stringify(well[key]), `agent_context.json: summary mismatch for ${well.id}/${key}.`);
+    }
+  }
+  ensure(JSON.stringify(context.limitations) === JSON.stringify(expected.limitations), 'agent_context.json: limitations mismatch.');
+  return context;
+}
+
 export function validateBatch(raw: Record<keyof Batch, unknown>): Batch {
   for (const name of names) {
     const validate = validators[name];
