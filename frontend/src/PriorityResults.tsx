@@ -1,6 +1,7 @@
 import type { Batch, Method } from './data/models';
 import { depthLabel } from './data/selection';
 import { methodLabels, priorityRows, resultRows, resultValue } from './data/results';
+import { provisionalReasons } from './data/provenance';
 
 export default function PriorityResults({ batch, selectedId, method, onSelectWell, onSelectMethod }: {
   batch: Batch; selectedId?: string; method?: Method;
@@ -34,6 +35,7 @@ export default function PriorityResults({ batch, selectedId, method, onSelectWel
       <p className="eyebrow">05 / Evaluation</p>
       <h2 id="results-title">Results</h2>
       <ul className="badges" aria-label="Evaluation dataset labels"><li>{meta.dataset_kind}</li><li>artifact_kind={meta.artifact_kind}</li></ul>
+      {provisionalReasons(batch).length > 0 && <p className="notice">PROVISIONAL exported evaluation. Physics and source provenance acceptance remain pending. These synthetic results do not establish field accuracy.</p>}
       <p>{batch.metrics.evaluation.notes}</p>
       {meta.artifact_kind === 'fixture' && <p className="notice">Illustrative UI fixture. No evaluation has run; accuracy values are unavailable.</p>}
       <p>Run-level exported results for the {batch.metrics.evaluation.test_group} test group, not individual-well scores. Common evaluation mask: {String(batch.metrics.evaluation.same_common_mask)}. Split seed: {batch.metrics.evaluation.split_seed}.</p>

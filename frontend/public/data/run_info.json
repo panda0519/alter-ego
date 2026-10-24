@@ -1,27 +1,34 @@
 {
   "meta": {
     "schema_version": "1.0.0",
-    "run_id": "fixture-layout-v1",
-    "dataset_id": "synthetic-layout-six-wells",
+    "run_id": "b09-gcn-lstm-lambda0-syn40-seed42",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
     "dataset_kind": "synthetic",
-    "artifact_kind": "fixture",
-    "generated_at_utc": "2026-10-21T12:00:00Z",
-    "as_of_date": "2024-09-29",
-    "default_method": "idw",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T17:08:20Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm",
     "depth_unit": "m_below_ground",
-    "caption": "Illustrative synthetic UI fixture. No model has been trained and no accuracy is claimed."
+    "caption": "Lambda 0 GCN-LSTM and IDW on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Physics was not run. Default method is the lower common-mask validation MAE. This is not field accuracy."
   },
-  "code_revision": null,
-  "checkpoint_sha256": null,
-  "python_version": null,
-  "torch_version": null,
-  "device": null,
+  "code_revision": "27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty",
+  "checkpoint_sha256": "721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a",
+  "python_version": "3.11.17",
+  "torch_version": "2.8.0+cu128",
+  "device": "cuda:NVIDIA GeForce RTX 5050 Laptop GPU",
   "nodus_job_ids": [],
   "selected_positive_lambda": null,
   "physics_assumptions": [
-    "Not run; see MASTER_PLAN.md for proposed assumptions."
+    "Physics regulariser was not run. q was not estimated.",
+    "gcn_lstm was trained at lambda 0 with masked standardised MSE only.",
+    "gcn_lstm_physics is not_run. This default is not a positive-lambda selection."
   ],
   "data_sources": [
-    "Illustrative fixture generated for interface development; no groundwater source data."
+    "synthetic bundle 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "IDW uses previous-day visible depths only, power 2, at most 6 donors.",
+    "Fictional wells. NASA POWER weather forced the synthetic generator and is not a well gauge.",
+    "GCN-LSTM uses the frozen eight features and previous-day visible lags.",
+    "Each neural date is the last position of the window ending on that date.",
+    "Checkpoint sha256 721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a. Device cuda:NVIDIA GeForce RTX 5050 Laptop GPU."
   ]
 }

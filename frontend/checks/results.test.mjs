@@ -6,7 +6,7 @@ import { validateBatch } from '../src/data/loadBatch.ts';
 
 const names = ['predictions', 'metrics', 'run_info', 'agent_context'];
 const batch = Object.fromEntries(await Promise.all(names.map(async name => [name,
-  JSON.parse(await readFile(new URL(`../public/data/${name}.json`, import.meta.url), 'utf8')),
+  JSON.parse(await readFile(new URL(`../../contracts/fixtures/${name}.json`, import.meta.url), 'utf8')),
 ])));
 for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
   test(`${method} priorities/reasons use only its own exported summaries`, () => {

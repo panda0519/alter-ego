@@ -8,7 +8,9 @@ import { join, resolve, dirname, basename } from 'node:path';
 
 const origin = process.env.ALTER_EGO_CHECK_ORIGIN || 'http://127.0.0.1:4173';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-const fixturePredictions = JSON.parse(await readFile(new URL('../public/data/predictions.json', import.meta.url), 'utf8'));
+const candidateMode = process.env.ALTER_EGO_CHECK_BATCH === 'candidate';
+const dataPath = candidateMode ? '../public/data/' : '../../contracts/fixtures/';
+const fixturePredictions = JSON.parse(await readFile(new URL(`${dataPath}predictions.json`, import.meta.url), 'utf8'));
 const profile = await mkdtemp(join(tmpdir(), 'alter-ego-a02-'));
 const browser = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', [
   '--headless', '--disable-gpu', '--no-first-run', '--remote-debugging-port=0',
@@ -30,6 +32,7 @@ try {
   const exceptions = [];
   let scenario = 'valid';
   let held = [];
+  const heldNames = new Map();
   let tileMode = 'success';
   let heldTiles = [];
   let tileRequests = 0;
@@ -69,12 +72,12 @@ try {
         void result.catch(interceptionError);
         return;
       }
-      if (scenario === 'loading') { held.push(requestId); return; }
+      if (scenario === 'loading') { held.push(requestId); heldNames.set(requestId, new URL(request.url).pathname.split('/').at(-1)); return; }
       batchRequests++;
       const name = new URL(request.url).pathname.split('/').at(-1);
       void (async () => {
-        if (scenario === 'valid') return send('Fetch.continueRequest', { requestId });
-        let body = await readFile(new URL(`../public/data/${name}`, import.meta.url), 'utf8');
+        if (scenario === 'valid' && candidateMode) return send('Fetch.continueRequest', { requestId });
+        let body = await readFile(new URL(`${dataPath}${name}`, import.meta.url), 'utf8');
         let responseCode = 200;
         if (name === 'agent_context.json' && scenario.startsWith('agent-')) {
           if (scenario === 'agent-network') return send('Fetch.failRequest', { requestId, errorReason: 'InternetDisconnected' });
@@ -150,7 +153,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1000, deviceScaleFactor: 1, mobile: false });
   await send('Fetch.enable', { patterns: [{ urlPattern: '*/data/*.json' }, { urlPattern: 'https://tile.openstreetmap.org/*' }] });
   async function evaluate(expression) {
-    const value = await send('Runtime.evaluate', { expression, returnByValue: true });
+    const value = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
     assert.ok(!value.exceptionDetails, JSON.stringify(value.exceptionDetails));
     return value.result.value;
   }
@@ -166,6 +169,10 @@ try {
     scenario = mode;
     await send('Page.navigate', { url: origin });
   }
+  if (candidateMode) {
+    const { runCandidate } = await import('./candidate-browser.mjs');
+    await runCandidate({ send, evaluate, waitText, navigate, pause, predictions: fixturePredictions, setScenario: value => { scenario = value; }, setTileMode: value => { tileMode = value; } });
+  } else {
   await navigate('valid');
   const valid = await waitText('6 wells loaded');
   for (const expected of ['Dataset: synthetic', 'artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', '60 series dates loaded', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
@@ -268,7 +275,10 @@ try {
   await navigate('loading');
   await waitText('Loading the complete export batch...');
   scenario = 'valid';
-  for (const requestId of held) await send('Fetch.continueRequest', { requestId }).catch(() => {});
+  for (const requestId of held) {
+    const body = await readFile(new URL(`${dataPath}${heldNames.get(requestId)}`, import.meta.url), 'utf8');
+    await send('Fetch.fulfillRequest', { requestId, responseCode: 200, body: Buffer.from(body).toString('base64') }).catch(() => {});
+  }
   held = [];
   await waitText('6 wells loaded');
   console.log('PASS browser: loading state and completion');
@@ -600,6 +610,7 @@ try {
     await writeFile(join(tmpdir(), `alter-ego-a08-${width}.png`), Buffer.from(capture.data, 'base64'));
   }
   console.log('PASS browser: A08 preparation only - missing instance; keyboard on-demand context check; selected-well/default-method distinction; invalid/stale/leaking/missing/network/timeout/retry states; no fabricated agent reply; responsive captures');
+  }
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');
   console.log('PASS browser: no uncaught runtime exceptions');
   console.log(`INFO browser: ${canceledInterceptions} canceled CDP interceptions during cleanup/refresh`);

@@ -1,5 +1,124 @@
 # Person A status
 
+## A09 provisional local integration checkpoint - 2026-10-24 IST
+
+Local integration: PASS. Final scientific acceptance: PENDING. Deployment: BLOCKED
+pending confirmed Render workspace/target and resolution of unrelated remote main.
+This is not completion of A09's deployed-site/two-laptop acceptance. No A10 work.
+
+Source branch: feature/model, fetched without merging. Pinned source commit:
+473bd2b4ba3c791028c805ea743e23d9a6281b4f (also fetched origin/feature/model).
+Run: b09-gcn-lstm-lambda0-syn40-seed42.
+Source directory: artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42/ at that commit.
+Dataset: 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351.
+dataset_kind=synthetic; artifact_kind=model_output; schema_version=1.0.0.
+Generated 2026-10-24T17:08:20Z; as_of_date=2024-12-31; default_method=gcn_lstm.
+40 wells, 60 dates (2024-11-02 through 2024-12-31), depth m_below_ground.
+
+Publication and changed files:
+- Extracted the exact predictions.json, metrics.json, run_info.json and
+  agent_context.json from the pinned Git commit into a temporary directory.
+  Ran scripts/validate_exports.py successfully BEFORE copying the complete
+  four-file batch into frontend/public/data/. No JSON values were edited.
+- frontend/checks/candidate.json records source commit/branch/run and SHA-256
+  for each published file. Candidate checks assert byte identity using those hashes.
+- frontend/src/data/provenance.ts presents provisional reasons from exported
+  method status, positive-lambda selection and source revision; no scientific
+  results, priorities, flags or metric values are recalculated.
+- frontend/src/App.tsx and PriorityResults.tsx prominently show PROVISIONAL,
+  synthetic limitations and pending scientific acceptance; source revision and
+  physics status remain visible. styles.css wraps long provenance text on mobile.
+- Existing fixture regressions now explicitly read contracts/fixtures/, independent
+  of the published model batch. Their scientific/privacy assertions are retained.
+  The former fixture-publication equality check is superseded by candidate hashes.
+- frontend/checks/candidate.test.mjs and candidate-browser.mjs verify the actual
+  candidate. browser.mjs supports fixture interception separately from real local
+  candidate HTTP requests, sharing the existing installed-Edge CDP harness.
+- docs/STATUS_A.md records this checkpoint. No contracts, ML code, B branch,
+  dependency manifests/locks, agent configuration or remote branches changed.
+
+Verified checks (Node v24.22.1; frontend commands run from frontend/):
+- `git fetch origin feature/model`: PASS after sandbox escalation; no merge or
+  checkout. Fetched head equals the pinned commit above.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py <temporary-candidate-dir>`:
+  PASS before publication. Same command with `frontend/public/data` and
+  `contracts/fixtures`: both PASS after publication. Checks schemas, all metadata,
+  dates/series/nulls, exported latest/30-day summaries, priorities, context summary
+  consistency and metric statuses/common test counts. Does NOT certify training,
+  leakage prevention, physics or accuracy.
+- `node --test --test-reporter=spec checks/*.test.mjs`: PASS 123 tests, zero
+  failures/skips (117 fixture regressions plus 6 candidate integration checks).
+  Candidate covers all 120 well/method selections, exact series/null preservation,
+  8 held-out wells, repeated state transitions, physics unavailable/null metrics,
+  exact source bytes, summary-only context, every missing file and every metadata
+  mismatch, then full successful recovery. Fixtures stay illustrative/not_run.
+- `npm run build`: PASS TypeScript/Vite, 681 modules; 20.26 kB CSS,
+  911.07 kB JS / 267.55 kB gzip. Existing non-failing >500 kB bundle warning.
+- `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`: PASS startup.
+- `$env:ALTER_EGO_CHECK_BATCH='candidate'; node checks/browser.mjs`: PASS against
+  the production preview using installed Edge. Real local four-file HTTP metadata
+  matches; all 120 well/method combinations show exact exported chart/table data,
+  statuses and matching map selection. All exported result fields and priority
+  orders match the batch. 48 outage/reveal/reset cycles across 8 held-out wells,
+  3 methods and 1280px/390px layouts pass. Switch/reset hides prior answers;
+  null truth remains Missing; unavailable physics is never substituted. Keyboard
+  outage, missing/mixed/malformed rejection and retry, map-tile failure fallback,
+  optional context check and zero uncaught runtime exceptions PASS.
+- With ALTER_EGO_CHECK_BATCH unset, `node checks/browser.mjs`: full A02-A08
+  fixture browser suite PASS via test-only response interception, including 24
+  outage/reveal/reset cycles, tooltip privacy, keyboard list/map/results actions,
+  tile errors/timeouts/map initialization recovery, incomplete/malformed/mixed
+  batch/loading/retry, null/calendar chart gaps, stale dataset reset and optional
+  Agent37 context invalid/network/timeout/retry states. No uncaught exceptions.
+- Browser tiles are intercepted locally: failure handling is verified; external
+  tile service availability is not claimed. No training/model request is made.
+- Candidate screenshots captured in Windows TEMP for header/map/history/results
+  at 390px and 1280px. Reviewed mobile warning/history and desktop results:
+  readable labels/plot, no horizontal page overflow; chart width exceeds 200px.
+- React review checklist: derived status during render, no added effects/state,
+  escaped text, existing accessible selections/loading/error semantics preserved;
+  no new dependency or frontend credential configuration.
+- `git diff --check`: PASS. Staged review and cached diff check performed before
+  commit; only the frontend integration/checks and this status note are included.
+  No secrets, generated build/screenshots, raw data or checkpoints staged.
+
+Scientific limitations and pending evidence:
+- gcn_lstm_physics status is not_run (the contract has no physics_status field).
+  Every physics prediction is null, summary unknown, error metrics null;
+  selected_positive_lambda=null. Final positive-lambda/physics acceptance PENDING.
+- Source code_revision remains exactly
+  27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty. Checkpoint SHA-256 is
+  721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a.
+  Pinned export bytes are verified, but dirty source reproducibility/checkpoint
+  contents and B training/leakage evidence are NOT independently certified.
+  B must reconcile provenance in a new reviewed batch; A did not rewrite it.
+- Completed IDW/GCN-LSTM report 713 common validation pairs and 1109 common test
+  pairs across 8 holdout wells. Exported validation MAEs: IDW 1.1042053369012759 m,
+  GCN-LSTM 0.8598469860694834 m. Reported test MAEs: IDW 1.4958895956006706 m,
+  GCN-LSTM 1.626403108513909 m. GCN-LSTM is the validation-selected default;
+  its reported test MAE is worse than IDW. No improvement/field-accuracy claim.
+- Dataset is fictional synthetic data. Reported GPU/environment and checkpoint
+  facts are B-exported provenance, not a local retraining or independent audit.
+  No Nodus job IDs/evidence; sponsor readiness PENDING.
+- Held-out values are excluded from chart/tooltip/table until permitted reveal
+  and never enter agent context. Static predictions.json intentionally contains
+  reveal observations per contract; presentation privacy is not access control
+  or secrecy from a user who reads the public JSON.
+
+Deployment blockers and next handoff:
+- Render workspace/target and GitHub App repository authorization PENDING.
+  No Render service created, deployment attempted or paid resource changed.
+- Remote main at 8cc5fd7435f706cf407ae19fba4e669d78408240 has an empty tree and
+  unrelated history to feature/person-a. A09's main deployment cannot build yet.
+  A history-preserving integration strategy needs explicit agreement; no merges,
+  main changes, force pushes or remote writes were performed.
+- Final deployed four-URL metadata checks and both-laptop site checks PENDING.
+- Agent37 account VERIFIED by user; live integration PENDING / OPTIONAL.
+  Core application remains independent; no active instance or credentials needed.
+- This checkpoint is safe for local provisional demonstrations. Final science,
+  deployment acceptance and A10 remain pending. Commit locally on feature/person-a;
+  do not push/merge/deploy. Commit SHA reported after creation.
+
 ## A08 local preparation handoff - 2026-10-24 IST
 
 Local A08 frontend preparation: COMPLETE; applicable local checks PASS.

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { publicHttpsUrl, checkBriefingContext } from '../src/data/briefing.ts';
 import { validateAgentContext } from '../src/data/loadBatch.ts';
 
-const expected = JSON.parse(await readFile(new URL('../public/data/agent_context.json', import.meta.url), 'utf8'));
+const expected = JSON.parse(await readFile(new URL('../../contracts/fixtures/agent_context.json', import.meta.url), 'utf8'));
 test('missing native configuration remains missing', () => {
   for (const value of [undefined, '', '  ']) assert.equal(publicHttpsUrl(value).kind, 'missing');
 });

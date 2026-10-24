@@ -17,8 +17,9 @@ h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; }
 .intro { max-width: 65ch; margin-block: 16px 22px; color: #466267; }
 .badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
 .badges li { padding: 5px 12px; border: 1px solid #bfd3ce; border-radius: 6px; background: #e7f0ec; font-size: 0.8rem; }
-.notice { padding: 18px 22px; border-left: 4px solid #3b7977; background: #e7eeeb; margin-bottom: 24px; }
+.notice { padding: 18px 22px; border-left: 4px solid #3b7977; background: #e7eeeb; margin-bottom: 24px; overflow-wrap: anywhere; }
 .notice p { margin: 4px 0 0; }
+.provisional-notice { margin-block: 12px; padding: 12px; border: 2px solid #9b510b; background: #fff5df; }
 .metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; margin-bottom: 0; }
 .metadata dt { font-size: 0.8rem; font-weight: 700; }
 .metadata dd { margin: 0; overflow-wrap: anywhere; }

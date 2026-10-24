@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BatchError, loadBatch } from './data/loadBatch';
 import type { Batch } from './data/models';
 import WellWorkspace from './WellWorkspace';
+import { provisionalReasons } from './data/provenance';
 
 type LoadState = { kind: 'loading' } | { kind: 'ready'; batch: Batch } | { kind: 'missing' | 'invalid'; message: string };
 
@@ -24,6 +25,7 @@ export default function App() {
   }, [attempt]);
   const batch = state.kind === 'ready' ? state.batch : null;
   const meta = batch?.predictions.meta;
+  const provisional = batch ? provisionalReasons(batch) : [];
   return (
     <>
       <a className="skip-link" href="#workspace">Skip to workspace</a>
@@ -36,6 +38,7 @@ export default function App() {
           {meta ? <>
             <li>Dataset: {meta.dataset_kind}</li>
             <li>artifact_kind={meta.artifact_kind}</li>
+            {provisional.length > 0 && <li>PROVISIONAL</li>}
           </> : <li>No validated dataset loaded</li>}
         </ul>
       </header>
@@ -49,7 +52,11 @@ export default function App() {
           <button type="button" onClick={() => setAttempt(value => value + 1)}>Retry loading</button>
         </aside>}
         {batch && meta && <aside className="notice" aria-label="Dataset information">
-          <strong>{meta.artifact_kind === 'fixture' ? 'Illustrative fixture - not trained results' : 'Validated export batch'}</strong>
+          <strong>{meta.artifact_kind === 'fixture' ? 'Illustrative fixture - not trained results' : `${meta.dataset_kind.toUpperCase()} / ${provisional.length ? 'PROVISIONAL' : 'CONTRACT-VALIDATED'} export batch`}</strong>
+          {provisional.length > 0 && <div className="provisional-notice">
+            <p>{provisional.join(' ')} Local integration checkpoint only; final scientific acceptance is pending.</p>
+            <p>Exported metrics have not been independently verified as model accuracy.</p>
+          </div>}
           <p>{meta.caption}</p>
           {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
           <dl className="metadata">
@@ -63,6 +70,8 @@ export default function App() {
             <div><dt>Series dates</dt><dd>{batch.predictions.dates.length}</dd></div>
             <div><dt>Default method</dt><dd>{meta.default_method}</dd></div>
             <div><dt>Depth unit</dt><dd>{meta.depth_unit}</dd></div>
+            <div><dt>Source code revision</dt><dd>{batch.run_info.code_revision ?? 'Unavailable'}</dd></div>
+            <div><dt>Physics evaluation status</dt><dd>{batch.metrics.methods.gcn_lstm_physics.status}</dd></div>
           </dl>
         </aside>}
 

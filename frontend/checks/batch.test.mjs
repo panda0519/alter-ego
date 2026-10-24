@@ -9,12 +9,6 @@ const fixture = Object.fromEntries(await Promise.all(names.map(async name => [na
 ])));
 const fresh = () => structuredClone(fixture);
 
-test('published files are byte-for-byte copies of the complete fixture batch', async () => {
-  for (const name of names) {
-    assert.deepEqual(await readFile(new URL(`../public/data/${name}.json`, import.meta.url)),
-      await readFile(new URL(`../../contracts/fixtures/${name}.json`, import.meta.url)));
-  }
-});
 test('valid fixture retains identity, type, dates, counts, nulls and not_run metrics', () => {
   const batch = validateBatch(fresh());
   assert.equal(batch.predictions.meta.artifact_kind, 'fixture');
