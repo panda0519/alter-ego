@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alter Ego agent_context 1.0.0",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_kind": {
+          "enum": [
+            "real",
+            "synthetic"
+          ]
+        },
+        "artifact_kind": {
+          "enum": [
+            "fixture",
+            "model_output"
+          ]
+        },
+        "generated_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "as_of_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "default_method": {
+          "enum": [
+            "idw",
+            "gcn_lstm",
+            "gcn_lstm_physics"
+          ]
+        },
+        "depth_unit": {
+          "const": "m_below_ground"
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schema_version",
+        "run_id",
+        "dataset_id",
+        "dataset_kind",
+        "artifact_kind",
+        "generated_at_utc",
+        "as_of_date",
+        "default_method",
+        "depth_unit",
+        "caption"
+      ],
+      "additionalProperties": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "wells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "visible",
+              "train_masked",
+              "holdout"
+            ]
+          },
+          "method": {
+            "enum": [
+              "idw",
+              "gcn_lstm",
+              "gcn_lstm_physics"
+            ]
+          },
+          "latest_depth_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "change_30d_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "priority": {
+            "enum": [
+              "high",
+              "watch",
+              "normal",
+              "unknown"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "method",
+          "latest_depth_m",
+          "change_30d_m",
+          "priority",
+          "reason_codes"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "meta",
+    "limitations",
+    "wells"
+  ],
+  "additionalProperties": false
+}

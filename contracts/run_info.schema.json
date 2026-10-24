@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alter Ego run_info 1.0.0",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_kind": {
+          "enum": [
+            "real",
+            "synthetic"
+          ]
+        },
+        "artifact_kind": {
+          "enum": [
+            "fixture",
+            "model_output"
+          ]
+        },
+        "generated_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "as_of_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "default_method": {
+          "enum": [
+            "idw",
+            "gcn_lstm",
+            "gcn_lstm_physics"
+          ]
+        },
+        "depth_unit": {
+          "const": "m_below_ground"
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schema_version",
+        "run_id",
+        "dataset_id",
+        "dataset_kind",
+        "artifact_kind",
+        "generated_at_utc",
+        "as_of_date",
+        "default_method",
+        "depth_unit",
+        "caption"
+      ],
+      "additionalProperties": false
+    },
+    "code_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "checkpoint_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "python_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "torch_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "device": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nodus_job_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "selected_positive_lambda": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "physics_assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "data_sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "meta",
+    "code_revision",
+    "checkpoint_sha256",
+    "python_version",
+    "torch_version",
+    "device",
+    "nodus_job_ids",
+    "selected_positive_lambda",
+    "physics_assumptions",
+    "data_sources"
+  ],
+  "additionalProperties": false
+}

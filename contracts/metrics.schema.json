@@ -1,0 +1,289 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alter Ego metrics 1.0.0",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_kind": {
+          "enum": [
+            "real",
+            "synthetic"
+          ]
+        },
+        "artifact_kind": {
+          "enum": [
+            "fixture",
+            "model_output"
+          ]
+        },
+        "generated_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "as_of_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "default_method": {
+          "enum": [
+            "idw",
+            "gcn_lstm",
+            "gcn_lstm_physics"
+          ]
+        },
+        "depth_unit": {
+          "const": "m_below_ground"
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schema_version",
+        "run_id",
+        "dataset_id",
+        "dataset_kind",
+        "artifact_kind",
+        "generated_at_utc",
+        "as_of_date",
+        "default_method",
+        "depth_unit",
+        "caption"
+      ],
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "test_group": {
+          "const": "holdout"
+        },
+        "same_common_mask": {
+          "const": true
+        },
+        "split_seed": {
+          "type": "integer"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "test_group",
+        "same_common_mask",
+        "split_seed",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "methods": {
+      "type": "object",
+      "properties": {
+        "idw": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "not_run",
+                "completed",
+                "failed"
+              ]
+            },
+            "validation_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "validation_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_rmse_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_wells": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lambda": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "validation_mae_m",
+            "validation_pairs",
+            "test_mae_m",
+            "test_rmse_m",
+            "test_pairs",
+            "test_wells",
+            "lambda"
+          ],
+          "additionalProperties": false
+        },
+        "gcn_lstm": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "not_run",
+                "completed",
+                "failed"
+              ]
+            },
+            "validation_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "validation_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_rmse_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_wells": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lambda": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "validation_mae_m",
+            "validation_pairs",
+            "test_mae_m",
+            "test_rmse_m",
+            "test_pairs",
+            "test_wells",
+            "lambda"
+          ],
+          "additionalProperties": false
+        },
+        "gcn_lstm_physics": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "not_run",
+                "completed",
+                "failed"
+              ]
+            },
+            "validation_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "validation_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_mae_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_rmse_m": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "test_pairs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "test_wells": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lambda": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "validation_mae_m",
+            "validation_pairs",
+            "test_mae_m",
+            "test_rmse_m",
+            "test_pairs",
+            "test_wells",
+            "lambda"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "idw",
+        "gcn_lstm",
+        "gcn_lstm_physics"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "meta",
+    "evaluation",
+    "methods"
+  ],
+  "additionalProperties": false
+}

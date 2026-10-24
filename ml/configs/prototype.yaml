@@ -1,0 +1,78 @@
+schema_version: 1.0.0
+seed: 42
+data:
+  target_wells: 40
+  start_date: '2023-01-01'
+  end_date: '2024-12-31'
+  daily_step: 1
+  target_unit: m_below_ground
+  train_min_coverage: 0.70
+  window: 30
+  stride: 1
+  train_fraction: 0.60
+  validation_fraction: 0.15
+  test_fraction: 0.25
+  windows_cross_partitions: false
+  holdout_fraction: 0.20
+  train_masked_fraction_of_remaining: 0.30
+  lag_fill: standardised_zero_with_mask
+features:
+  order: [lag_depth_z, lag_available, precipitation_z, et0_z, doy_sin, doy_cos, x_z, y_z]
+  count: 8
+  depth_scaler: global_permitted_training_labels
+  weather_scaler: training_dates_visible_donors
+graph:
+  neighbours: 6
+  distances: haversine_metres
+  weights: gaussian_median_positive_neighbour_distance
+  symmetrise: union_max
+  self_loops: true
+  normalisation: symmetric_degree
+model:
+  gcn_layers: 1
+  gcn_hidden: 32
+  lstm_layers: 1
+  lstm_hidden: 32
+  bidirectional: false
+  internal_lstm_dropout: 0.0
+  external_dropout: 0.1
+  output: depth_sequence_B_T_N
+training:
+  batch_size: 16
+  max_epochs: 40
+  optimiser: AdamW
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  grad_clip_norm: 1.0
+  early_stopping_patience: 8
+  validation_metric: train_masked_mae_m
+  shuffle_windows: false
+  ignore_first_sequence_positions: 7
+  lambda_targets: [0.0, 0.1, 1.0]
+  lambda_zero_epochs: 5
+  lambda_ramp_epochs: 5
+physics:
+  formulation: simplified_local_storage_7day
+  specific_yield_assumed: 0.10
+  effective_rainfall_fraction_assumed: 0.15
+  et0_coupling_assumed: 0.10
+  q_mode: frozen_global_training_estimate
+  q_min_valid_daily_pairs_per_well: 30
+  residual_days: 7
+  residual_scale: permitted_training_7day_change_std
+  minimum_residual_scale_m: 0.05
+  weather_unit: m_per_day
+  lateral_flow: false
+baseline:
+  method: idw
+  power: 2.0
+  max_donors: 6
+  input: visible_previous_day_only
+  empty_donors: missing
+export:
+  history_days: 60
+  change_days: 30
+  high_change_gt_m: 0.50
+  watch_change_gt_m: 0.20
+  default_method: lowest_common_mask_validation_mae
+  methods: [idw, gcn_lstm, gcn_lstm_physics]
