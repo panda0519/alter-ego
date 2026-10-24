@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from ml.data.bundle import prepare
+from ml.export.writer import export_baseline, load_export_inputs
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -22,6 +23,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="archive a different dataset already present in --output under revisions/",
     )
+    baseline_parser = sub.add_parser("baseline", help="export an IDW baseline batch")
+    baseline_parser.add_argument("--config", required=True)
+    baseline_parser.add_argument("--bundle", required=True)
+    baseline_parser.add_argument("--run-id", required=True)
+    baseline_parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
     if args.command == "prepare":
         manifest = prepare(
@@ -41,6 +47,18 @@ def main(argv: list[str] | None = None) -> int:
             "date_partitions": manifest["date_partitions"],
             "training_coverage_min": manifest["training_coverage_min"],
             "missing_fraction": manifest["missing_fraction"],
+            "output": str(Path(args.output)),
+        }, indent=2, allow_nan=False))
+        return 0
+    if args.command == "baseline":
+        bundle = load_export_inputs(Path(args.bundle))
+        meta = export_baseline(Path(args.config), bundle, args.run_id, Path(args.output))
+        print(json.dumps({
+            "run_id": meta["run_id"],
+            "dataset_id": meta["dataset_id"],
+            "dataset_kind": meta["dataset_kind"],
+            "default_method": meta["default_method"],
+            "as_of_date": meta["as_of_date"],
             "output": str(Path(args.output)),
         }, indent=2, allow_nan=False))
         return 0

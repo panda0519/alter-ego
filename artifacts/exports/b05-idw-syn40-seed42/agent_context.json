@@ -1,0 +1,504 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b05-idw-syn40-seed42",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T16:43:49Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "idw",
+    "depth_unit": "m_below_ground",
+    "caption": "IDW baseline on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Neural methods were not run. This is not field accuracy."
+  },
+  "limitations": [
+    "Dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351 is synthetic. Synthetic results are not field accuracy.",
+    "Historical reconstruction only. This is not a live sensor feed or a forecast.",
+    "Default method is IDW because the neural runs have status not_run. IDW was not compared with a trained model.",
+    "Priority thresholds are prototype inspection labels, not official warnings.",
+    "The chart shows the exported test dates. Metric pair counts cover the full validation and test partitions.",
+    "Displayed wells are the frozen cohort. Test metrics use holdout wells only."
+  ],
+  "wells": [
+    {
+      "id": "SYN001",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 13.468768931207398,
+      "change_30d_m": -0.2015824464650322,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN002",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 12.985547225655997,
+      "change_30d_m": -0.031216641723265326,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN003",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 13.020745595354402,
+      "change_30d_m": 0.08289905186668811,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN004",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 14.39382519920106,
+      "change_30d_m": 0.3208094161739439,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN005",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 14.689831114033483,
+      "change_30d_m": 0.23466376526011956,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN006",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 15.38654811974308,
+      "change_30d_m": -0.04398790199320146,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN007",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 18.089858184556153,
+      "change_30d_m": 0.40423502301359804,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN008",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 15.963428228358755,
+      "change_30d_m": 0.05434771618619649,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN009",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 12.577296470798451,
+      "change_30d_m": -0.5349255167080909,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN010",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 12.372923437564433,
+      "change_30d_m": -1.2089068997592332,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN011",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 14.448318860470767,
+      "change_30d_m": -0.5069226250602181,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN012",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 15.978602178466215,
+      "change_30d_m": 0.30176438827944807,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN013",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 16.020152723021642,
+      "change_30d_m": 0.3015290410846152,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN014",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 17.241810218474743,
+      "change_30d_m": 0.085933753827927,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN015",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 17.38716518877709,
+      "change_30d_m": 0.6644739140347831,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN016",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 18.487394745482398,
+      "change_30d_m": 0.006955701671159886,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN017",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 15.381662122022705,
+      "change_30d_m": -0.15597127463565919,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN018",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 16.986215878836948,
+      "change_30d_m": 1.1567488053164823,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN019",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 18.269178118253055,
+      "change_30d_m": -0.2261704101202362,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN020",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 16.36347404756562,
+      "change_30d_m": 0.49277105567888135,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN021",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 18.255509944511054,
+      "change_30d_m": 0.2930726653289355,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN022",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 19.19518820733927,
+      "change_30d_m": 0.20491156335761573,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN023",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 19.929723552935606,
+      "change_30d_m": 0.18640840446282425,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN024",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 19.44815700024599,
+      "change_30d_m": 1.5480951236849059,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN025",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 19.788687451973868,
+      "change_30d_m": 1.9815831381096913,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN026",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 21.367150110230767,
+      "change_30d_m": 1.8551799001729599,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN027",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 22.413472648661507,
+      "change_30d_m": 1.27593956442891,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN028",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 20.803690601456815,
+      "change_30d_m": 0.04682862884821759,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN029",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 21.476670838397958,
+      "change_30d_m": 0.2698178711348014,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN030",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 21.36489718325741,
+      "change_30d_m": 0.1839784900829109,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN031",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 22.866819349608917,
+      "change_30d_m": 0.24928250045008227,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN032",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 21.54382439963578,
+      "change_30d_m": 0.44104241548206247,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN033",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 22.375043544853042,
+      "change_30d_m": 2.5452896053498613,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN034",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 22.14606428291831,
+      "change_30d_m": -0.0508154574461841,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN035",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 21.558379314992084,
+      "change_30d_m": 1.7086898746959385,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_gt_0_50_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN036",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 22.977967601553843,
+      "change_30d_m": 0.27247635870859455,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN037",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 22.815464173985028,
+      "change_30d_m": 0.16771960416775045,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN038",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 23.47177427514428,
+      "change_30d_m": 0.31098811155978723,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN039",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 21.470521505138837,
+      "change_30d_m": 0.23769177401096542,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    },
+    {
+      "id": "SYN040",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 23.662553807980274,
+      "change_30d_m": 0.40533554511761594,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_gt_0_20_m",
+        "idw_visible_previous_day"
+      ]
+    }
+  ]
+}
