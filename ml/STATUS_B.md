@@ -12,7 +12,7 @@ Candidate path: `artifacts/exports/b12-final-syn40-seed42`
 
 Dataset ID and real/synthetic: `05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351`, synthetic
 
-Code revision inside the JSON: `57dc6f9a7feec7d9b536da5d2f7929067ba98512+dirty`. Do not rewrite it after this commit. The implementation commit SHA is recorded below after the commit exists.
+Code revision inside the JSON: `57dc6f9a7feec7d9b536da5d2f7929067ba98512+dirty`. Do not rewrite it. Implementation commit: `d622419a07177ad35bc49c5e2a5f733a20751aae`.
 
 Files:
 
@@ -49,6 +49,6 @@ The physics term is an assumed local storage penalty, not a flow model. With dep
 
 `ml/B_PHASE_5_SELF_CHECK.md`. `.venv/bin/python -m pytest tests -q --tb=line`: 61 passed in 27.06s. pip check: `No broken requirements found.` Repeat evaluate and repeat export both exited 1 by refusing an existing folder. `b05-idw-syn40-seed42` and `b09-gcn-lstm-lambda0-syn40-seed42` were not edited.
 
-Git: `feature/model`. Parent `57dc6f9a7feec7d9b536da5d2f7929067ba98512`. Remote `https://github.com/panda0519/alter-ego`. The implementation commit SHA is added in the follow-up status commit. Push was not attempted.
+Git: `feature/model` handoff `d622419a07177ad35bc49c5e2a5f733a20751aae`. Parent `57dc6f9a7feec7d9b536da5d2f7929067ba98512`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
 
 Next: stop. Rehearsals are PENDING until they actually happen. Nodus login remains an operator step. A alone publishes and validates before acceptance.

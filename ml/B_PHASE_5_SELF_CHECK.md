@@ -12,4 +12,4 @@ Date: 24 October 2026. Branch `feature/model`. Parent `57dc6f9a7feec7d9b536da5d2
 | pip check | `.venv/bin/python -m pip check` | No broken requirements | `No broken requirements found.` | PASS |
 | Nodus | `.venv-tools/bin/nodus whoami` and `nodus version` | Account and credits, or an explicit block. No job | `whoami` exit 1, `not logged in`. Version banner `nodus 0.1.45`. No job was submitted and no id was invented | PENDING |
 | Rehearsals | Three joint demonstration rehearsals | Actual issues and results | No rehearsal was held. No deck, recording or receipt was created | PENDING |
-| Handoff commit | Git commit on `feature/model` | A real SHA, no push | Recorded in the follow-up status commit. Not pushed | PASS |
+| Handoff commit | Git commit on `feature/model` | A real SHA, no push | `d622419a07177ad35bc49c5e2a5f733a20751aae`. Export `code_revision` stays `57dc6f9a7feec7d9b536da5d2f7929067ba98512+dirty` and was not rewritten. Not pushed | PASS |
