@@ -20,7 +20,7 @@ Module map: `ml/graph.py` builds the dense graph. Feature columns stay in `ml/da
 | Fixture validator | `.venv/bin/python scripts/validate_exports.py contracts/fixtures` | Unchanged fixture batch passes | Exit 0, PASS line | PASS |
 | Config bytes | `sha256sum ml/configs/prototype.yaml` | Phase 0 hash | `859ac9e4014c4972132233aed5ad1fec1be1ad4cbebeaa7c0ebbac3e32991e32` | PASS |
 | Nodus | Not run | Stays pending | No login, org, credit, or job | PENDING |
-| Handoff commit | Git commit on `feature/model` | A real SHA, no push | Recorded in `ml/STATUS_B.md` after the commit. Export `code_revision` stays `27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty` | PASS |
+| Handoff commit | Git commit on `feature/model` | A real SHA, no push | `6bb606ec7e3a9e0d34ac9c7b0e2b732b1e1158f3`. Export `code_revision` stays `27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty` and was not rewritten. Not pushed | PASS |
 
 File SHA-256 for `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42`:
 

@@ -16,6 +16,6 @@ Request for A: validate `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42` be
 
 Nodus: still PENDING. Not logged in. No org, credit, or job. No spend.
 
-Git: `feature/model`. Phase 3 handoff commit SHA is filled below after `git commit`. Parent `27631dc55c4c65d87e394a54ef0aa5879cb69468`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
+Git: `feature/model` handoff `6bb606ec7e3a9e0d34ac9c7b0e2b732b1e1158f3` (`theravij <2501640100693@psit.ac.in>`). Parent `27631dc55c4c65d87e394a54ef0aa5879cb69468`. The export JSON still records `code_revision` `27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty` from the moment it was written. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
 
 Next: stop before the physics regulariser. Nodus login remains a separate operator step.
