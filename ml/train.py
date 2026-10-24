@@ -1,10 +1,12 @@
-"""Lambda-0 training on permitted training labels.
+"""Training on permitted labels, with an optional storage residual.
 
 AdamW uses the configured learning rate, weight decay, batch size and gradient
 clip. Windows stay in stored order. Validation MAE is metres at train-masked
 wells, one score per date from the window that ends on that date. Holdout
-labels are not read for the loss or the checkpoint choice. A smoke run is one
-epoch and is tagged so it cannot be used as the comparative result.
+labels are not read for the data loss or the checkpoint choice. Lambda 0 does
+not apply the physics term. A positive target uses five epochs at lambda 0 and
+five epochs of linear ramp, then holds the target. A smoke run is one epoch
+and is tagged so it cannot be used as the comparative result.
 """
 from __future__ import annotations
 
@@ -32,6 +34,13 @@ from ml.graph import build_graph
 from ml.infer import predict_ending_windows
 from ml.losses import EmptySupervision, masked_standardised_mse, supervision_mask
 from ml.model import GCNLSTM
+from ml.physics import (
+    estimate_q,
+    physics_constants,
+    scheduled_lambda,
+    seven_day_change_scale_m,
+    window_physics_loss,
+)
 
 
 def set_seed(seed: int) -> None:
@@ -68,12 +77,14 @@ def train_lambda0(
     lambda_target: float,
     smoke: bool = False,
 ) -> dict:
-    if float(lambda_target) != 0.0:
-        raise ValueError("this phase trains lambda 0 only; positive lambda belongs to the physics phase")
     run_dir = Path(run_dir)
     if (run_dir / "checkpoint.pt").exists():
         raise FileExistsError(f"refusing to overwrite checkpoint {run_dir / 'checkpoint.pt'}")
     config = load_config(config_path)
+    allowed = [float(item) for item in config["training"]["lambda_targets"]]
+    if not any(math.isclose(float(lambda_target), item, rel_tol=0.0, abs_tol=0.0) for item in allowed):
+        raise ValueError(f"lambda target {lambda_target} is not one of {allowed}")
+    use_physics = not math.isclose(float(lambda_target), 0.0, rel_tol=0.0, abs_tol=0.0)
     if config["training"]["optimiser"] != "AdamW":
         raise ValueError("optimiser must be AdamW")
     if config["training"]["shuffle_windows"] is not False:
@@ -127,6 +138,16 @@ def train_lambda0(
     mask = supervision_mask(valid_windows, bundle["roles"], ignore_first)
     if int(mask[:, :, bundle["roles"] == "holdout"].sum()) != 0:
         raise RuntimeError("holdout labels entered the training mask")
+    constants = physics_constants(config)
+    calibration = None
+    precip_windows = None
+    et0_windows = None
+    weather_windows = None
+    if use_physics:
+        calibration = _calibrate_physics(bundle, constants)
+        precip_windows = slice_windows(bundle["precip_m_per_day"][:, :, None], train_ends, WINDOW)[:, :, :, 0]
+        et0_windows = slice_windows(bundle["et0_m_per_day"][:, :, None], train_ends, WINDOW)[:, :, :, 0]
+        weather_windows = slice_windows(bundle["weather_valid"][:, :, None], train_ends, WINDOW)[:, :, :, 0]
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=float(training["learning_rate"]),
@@ -153,6 +174,8 @@ def train_lambda0(
         squared = 0.0
         supervised = 0
         skipped = 0
+        physics_squared = []
+        physics_weights = []
         for start in range(0, len(train_ends), batch_size):
             stop = min(start + batch_size, len(train_ends))
             inputs = torch.from_numpy(np.ascontiguousarray(windows[start:stop])).to(device)
@@ -161,28 +184,62 @@ def train_lambda0(
             optimizer.zero_grad(set_to_none=True)
             prediction = model(inputs, adjacency)
             try:
-                loss = masked_standardised_mse(prediction, target, batch_mask)
+                data_loss = masked_standardised_mse(prediction, target, batch_mask)
             except EmptySupervision:
                 skipped += 1
                 continue
+            physics_value = None
+            applied = 0.0
+            if use_physics:
+                applied = scheduled_lambda(
+                    epoch,
+                    float(lambda_target),
+                    int(training["lambda_zero_epochs"]),
+                    int(training["lambda_ramp_epochs"]),
+                )
+                physics_loss = window_physics_loss(
+                    prediction,
+                    torch.from_numpy(np.ascontiguousarray(precip_windows[start:stop])).to(device),
+                    torch.from_numpy(np.ascontiguousarray(et0_windows[start:stop])).to(device),
+                    torch.from_numpy(np.ascontiguousarray(weather_windows[start:stop])).to(device),
+                    bundle["depth_mean_m"],
+                    bundle["depth_std_m"],
+                    calibration["q_m_per_day"],
+                    calibration["scale_m"],
+                    constants["specific_yield"],
+                    constants["alpha"],
+                    constants["beta"],
+                    ignore_first,
+                    constants["residual_days"],
+                )
+                physics_value = float(physics_loss.detach().cpu())
+                loss = data_loss + applied * physics_loss
+            else:
+                loss = data_loss
             loss.backward()
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), float(training["grad_clip_norm"]))
             if not math.isfinite(float(loss.detach().cpu())) or not math.isfinite(float(grad_norm)):
                 raise RuntimeError(f"non-finite training value at epoch {epoch}")
+            if physics_value is not None and not math.isfinite(physics_value):
+                raise RuntimeError(f"non-finite physics loss at epoch {epoch}")
             optimizer.step()
             count = int(batch_mask.sum().item())
-            squared += float(loss.detach().cpu()) * count
+            squared += float(data_loss.detach().cpu()) * count
             supervised += count
+            if physics_value is not None:
+                physics_squared.append(physics_value)
+                physics_weights.append(applied)
         if supervised < 1:
             raise RuntimeError("epoch had no permitted training targets")
         validation_mae = _validation_mae(model, features, adjacency, bundle, device, batch_size)
         if not math.isfinite(validation_mae):
             raise RuntimeError(f"non-finite validation MAE at epoch {epoch}")
+        applied_lambda = 0.0 if not use_physics else physics_weights[-1] if physics_weights else 0.0
         record = {
             "epoch": epoch,
             "data_loss": squared / supervised,
-            "lambda": 0.0,
-            "physics_loss": None,
+            "lambda": applied_lambda,
+            "physics_loss": None if not physics_squared else float(np.mean(physics_squared)),
             "validation_mae_m": validation_mae,
             "supervised_values": supervised,
             "skipped_empty_batches": skipped,
@@ -195,7 +252,22 @@ def train_lambda0(
             best_mae = validation_mae
             best_epoch = epoch
             since_best = 0
-            _write_checkpoint(run_dir / "checkpoint.pt", model, adjacency, config, bundle, graph, epoch, validation_mae, smoke, device)
+            _write_checkpoint(
+                run_dir / "checkpoint.pt",
+                model,
+                adjacency,
+                config,
+                bundle,
+                graph,
+                epoch,
+                validation_mae,
+                smoke,
+                device,
+                lambda_target=float(lambda_target),
+                lambda_at_epoch=applied_lambda,
+                calibration=calibration,
+                constants=constants if use_physics else None,
+            )
         else:
             since_best += 1
             if not smoke and since_best >= int(training["early_stopping_patience"]):
@@ -204,9 +276,9 @@ def train_lambda0(
     elapsed = time.perf_counter() - started
     digest = file_sha256(run_dir / "checkpoint.pt")
     manifest = {
-        "run_kind": "lambda0_smoke" if smoke else "lambda0",
+        "run_kind": _run_kind(float(lambda_target), smoke),
         "smoke": smoke,
-        "evidence_role": "development_smoke" if smoke else "lambda0_checkpoint",
+        "evidence_role": "development_smoke" if smoke else "training_checkpoint",
         "seed": seed,
         "device": device_label(device),
         "python_version": _python_version(),
@@ -216,8 +288,13 @@ def train_lambda0(
         "best_validation_mae_m": best_mae,
         "stopped_early": stopped_early,
         "elapsed_seconds": elapsed,
-        "lambda_target": 0.0,
-        "physics": "not_run",
+        "lambda_target": float(lambda_target),
+        "physics": "not_run" if not use_physics else calibration["q_status"],
+        "q_m_per_day": None if calibration is None else calibration["q_m_per_day"],
+        "q_eligible_wells": None if calibration is None else calibration["eligible_wells"],
+        "residual_scale_m": None if calibration is None else calibration["scale_m"],
+        "best_epoch_lambda": None if best_epoch is None else _lambda_on_epoch(best_epoch, float(lambda_target), training, use_physics),
+        "selected_checkpoint_used_positive_lambda": False if not use_physics else _lambda_on_epoch(best_epoch, float(lambda_target), training, True) > 0.0,
         "dataset_id": bundle["dataset_id"],
         "dataset_kind": bundle["dataset_kind"],
         "code_revision": _code_revision(Path(config_path).resolve().parents[2]),
@@ -287,8 +364,76 @@ def _validation_mae(model, features, adjacency, bundle, device, batch_size: int)
     return float(np.mean(errors))
 
 
-def _write_checkpoint(path, model, adjacency, config, bundle, graph, epoch: int, validation_mae: float, smoke: bool, device) -> None:
-    save_checkpoint(path, {
+def _calibrate_physics(bundle: dict, constants: dict) -> dict:
+    estimated = estimate_q(
+        bundle["depth_m"],
+        bundle["depth_valid"],
+        bundle["precip_m_per_day"],
+        bundle["et0_m_per_day"],
+        bundle["weather_valid"],
+        bundle["roles"],
+        bundle["n_train"],
+        constants["specific_yield"],
+        constants["alpha"],
+        constants["beta"],
+        constants["min_pairs"],
+    )
+    scale = seven_day_change_scale_m(
+        bundle["depth_m"],
+        bundle["depth_valid"],
+        bundle["roles"],
+        bundle["n_train"],
+        constants["residual_days"],
+        constants["minimum_scale_m"],
+    )
+    if estimated["status"] != "frozen_training_estimate" or scale["status"] != "permitted_training_7day_change_std":
+        raise RuntimeError(
+            "physics is not calibrated from permitted training observations: "
+            f"q={estimated['status']} scale={scale['status']}"
+        )
+    return {
+        "q_m_per_day": estimated["q_m_per_day"],
+        "eligible_wells": estimated["eligible_wells"],
+        "q_status": estimated["status"],
+        "scale_m": scale["scale_m"],
+        "change_std_m": scale["std_m"],
+        "change_pairs": scale["pairs"],
+    }
+
+
+def _lambda_on_epoch(epoch: int, target: float, training: dict, use_physics: bool) -> float:
+    if not use_physics:
+        return 0.0
+    return scheduled_lambda(
+        int(epoch),
+        target,
+        int(training["lambda_zero_epochs"]),
+        int(training["lambda_ramp_epochs"]),
+    )
+
+
+def _run_kind(target: float, smoke: bool) -> str:
+    label = "0" if target == 0.0 else format(target, "g")
+    return f"lambda{label}_smoke" if smoke else f"lambda{label}"
+
+
+def _write_checkpoint(
+    path,
+    model,
+    adjacency,
+    config,
+    bundle,
+    graph,
+    epoch: int,
+    validation_mae: float,
+    smoke: bool,
+    device,
+    lambda_target: float = 0.0,
+    lambda_at_epoch: float = 0.0,
+    calibration: dict | None = None,
+    constants: dict | None = None,
+) -> None:
+    payload = {
         "model_state": {name: value.detach().cpu() for name, value in model.state_dict().items()},
         "adjacency": adjacency.detach().cpu(),
         "station_ids": list(bundle["station_ids"]),
@@ -309,10 +454,22 @@ def _write_checkpoint(path, model, adjacency, config, bundle, graph, epoch: int,
         "code_revision": _code_revision(Path.cwd()),
         "epoch": int(epoch),
         "validation_mae_m": float(validation_mae),
-        "lambda_target": 0.0,
+        "lambda_target": float(lambda_target),
+        "lambda_at_epoch": float(lambda_at_epoch),
         "smoke": bool(smoke),
         "device": device_label(device),
-    })
+    }
+    if calibration is not None and constants is not None:
+        payload["physics"] = {
+            "q_m_per_day": calibration["q_m_per_day"],
+            "q_eligible_wells": calibration["eligible_wells"],
+            "residual_scale_m": calibration["scale_m"],
+            "specific_yield": constants["specific_yield"],
+            "alpha": constants["alpha"],
+            "beta": constants["beta"],
+            "lateral_flow": False,
+        }
+    save_checkpoint(path, payload)
 
 
 def _python_version() -> str:

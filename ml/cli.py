@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from ml.data.bundle import prepare
@@ -72,6 +73,8 @@ def main(argv: list[str] | None = None) -> int:
         }, indent=2, allow_nan=False))
         return 0
     if args.command == "train":
+        if (args.run_id or args.output) and not math.isclose(args.lambda_target, 0.0, rel_tol=0.0, abs_tol=0.0):
+            raise ValueError("positive-lambda selection is a later phase; this command does not export it")
         manifest = train_lambda0(
             Path(args.config),
             Path(args.bundle),
