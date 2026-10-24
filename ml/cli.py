@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 
 from ml.data.bundle import prepare
+from ml.evaluate import evaluate, publish
 from ml.export.writer import export_baseline, export_gcn_lstm_batch, load_export_inputs
 from ml.train import reload_and_predict, train_lambda0
 
@@ -38,6 +39,17 @@ def main(argv: list[str] | None = None) -> int:
     train_parser.add_argument("--smoke", action="store_true")
     train_parser.add_argument("--run-id", default=None)
     train_parser.add_argument("--output", default=None)
+    evaluate_parser = sub.add_parser("evaluate", help="select on validation, then score holdout once")
+    evaluate_parser.add_argument("--config", required=True)
+    evaluate_parser.add_argument("--bundle", required=True)
+    evaluate_parser.add_argument("--runs", nargs="+", required=True)
+    evaluate_parser.add_argument("--output", required=True)
+    export_parser = sub.add_parser("export", help="reload the selected checkpoint and write one batch")
+    export_parser.add_argument("--config", required=True)
+    export_parser.add_argument("--bundle", required=True)
+    export_parser.add_argument("--evaluation", required=True)
+    export_parser.add_argument("--run-id", required=True)
+    export_parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
     if args.command == "prepare":
         manifest = prepare(
@@ -114,6 +126,35 @@ def main(argv: list[str] | None = None) -> int:
             "dataset_id": manifest["dataset_id"],
             "export": None if exported is None else str(Path(args.output)),
             "default_method": None if exported is None else exported["default_method"],
+        }, indent=2, allow_nan=False))
+        return 0
+    if args.command == "evaluate":
+        document = evaluate(Path(args.config), Path(args.bundle), [Path(item) for item in args.runs], Path(args.output))
+        print(json.dumps({
+            "default_method": document["default_method"],
+            "default_locked_before_test": document["default_locked_before_test"],
+            "positive_lambda_selection": document["positive_lambda_selection"],
+            "gcn_lstm_physics_status": document["gcn_lstm_physics_status"],
+            "selected_positive_lambda": document["selected_positive_lambda"],
+            "validation": document["validation"],
+            "test": document["test"],
+            "holdout_valid_labels": document["holdout_valid_labels"],
+            "displayed_wells": document["displayed_wells"],
+            "calibration": document["calibration"],
+            "device": document["device"],
+            "lambda0_checkpoint_sha256": document["lambda0_checkpoint_sha256"],
+            "output": str(Path(args.output)),
+        }, indent=2, allow_nan=False))
+        return 0
+    if args.command == "export":
+        meta = publish(Path(args.config), Path(args.bundle), Path(args.evaluation), args.run_id, Path(args.output))
+        print(json.dumps({
+            "run_id": meta["run_id"],
+            "dataset_id": meta["dataset_id"],
+            "dataset_kind": meta["dataset_kind"],
+            "default_method": meta["default_method"],
+            "as_of_date": meta["as_of_date"],
+            "output": str(Path(args.output)),
         }, indent=2, allow_nan=False))
         return 0
     parser.error(f"unknown command {args.command}")
