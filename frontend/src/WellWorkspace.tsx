@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import WellMap from './WellMap';
+import HistoryChart from './HistoryChart';
 import { methods } from './data/models';
 import type { Batch, Role } from './data/models';
 import { depthLabel, initialSelection, methodAvailable, resolveSelection } from './data/selection';
@@ -67,6 +68,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
       </div>
     </section>
     <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} />
+    <HistoryChart batch={batch} selection={selection} />
     </>
   );
 }

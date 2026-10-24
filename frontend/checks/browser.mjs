@@ -74,6 +74,17 @@ try {
         let body = await readFile(new URL(`../public/data/${name}`, import.meta.url), 'utf8');
         let responseCode = 200;
         if (name === 'predictions.json') {
+          if (scenario === 'history-gaps') {
+            const value = JSON.parse(body); value.wells[0].predictions_m.gcn_lstm.splice(5, 3, null, null, null); body = JSON.stringify(value);
+          }
+          if (scenario === 'history-empty') {
+            const value = JSON.parse(body); value.wells[0].predictions_m.gcn_lstm.fill(null); value.wells[0].observations_m.fill(null); body = JSON.stringify(value);
+          }
+          if (scenario === 'history-calendar-gap') {
+            const value = JSON.parse(body); value.dates.splice(5, 1);
+            value.wells.forEach(well => { well.observations_m.splice(5, 1); Object.values(well.predictions_m).forEach(values => values.splice(5, 1)); });
+            body = JSON.stringify(value);
+          }
           if (scenario === 'invalid-coordinates') { const value = JSON.parse(body); value.wells[0].latitude = 91; body = JSON.stringify(value); }
           if (scenario === 'duplicate-coordinates') { const value = JSON.parse(body); value.wells.forEach(well => { well.latitude = 26; well.longitude = 91; }); body = JSON.stringify(value); }
           if (scenario === 'malformed') body = '{';
@@ -98,6 +109,7 @@ try {
   };
   await send('Runtime.enable');
   await send('Page.enable');
+  await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1000, deviceScaleFactor: 1, mobile: false });
   await send('Fetch.enable', { patterns: [{ urlPattern: '*/data/*.json' }, { urlPattern: 'https://tile.openstreetmap.org/*' }] });
   async function evaluate(expression) {
     const value = await send('Runtime.evaluate', { expression, returnByValue: true });
@@ -141,9 +153,13 @@ try {
         priority: summary.priority, reasons: summary.reason_codes.join(', '),
       });
       assert.equal(await evaluate('document.querySelectorAll(".well-list button[aria-pressed=true]").length'), 1);
+      await waitText(`History: ${well.id} / ${method}`);
+      assert.deepEqual(await evaluate('[...document.querySelectorAll(".history-table tbody tr")].map(row => [...row.children].map(cell => cell.textContent))'),
+        fixturePredictions.dates.map((date, index) => [date, `${well.predictions_m[method][index]} m`]));
     }
   }
   console.log('PASS browser: all 18 well/method combinations show their own exported fields, with one selected well');
+  console.log('PASS browser: chart/table dates and reconstructed values follow all 18 well/method combinations');
   // Real keyboard activation of a well button, preserving the chosen method.
   await send('Page.bringToFront');
   await evaluate('document.querySelector(".well-list button").focus()');
@@ -251,7 +267,7 @@ try {
   assert.ok(tileRequests > 0);
   console.log('PASS browser: reloads retain one map; all tile requests intercepted locally');
   const failureHook = await send('Page.addScriptToEvaluateOnNewDocument', {
-    source: 'window.ResizeObserver = class { constructor() { throw new Error("Simulated map observer initialization failure"); } };',
+    source: 'window.ResizeObserver = class extends ResizeObserver { observe(target, options) { if (target.classList.contains("well-map")) throw new Error("Simulated map observer initialization failure"); return super.observe(target, options); } };',
   });
   await navigate('valid');
   await waitText('The map could not be initialized.');
@@ -261,6 +277,66 @@ try {
   await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: failureHook.identifier });
   await navigate('valid'); await waitText('Map tiles loaded.');
   console.log('PASS browser: initialization failure cleans up map and preserves list/details; next mount recovers');
+  // A05 visualization: inspect real SVG path breaks and the date-aligned data.
+  const selectedPath = '.history-selected .recharts-line-curve';
+  await chooseMethod('gcn_lstm');
+  await evaluate('document.getElementById("show-idw").click(); document.getElementById("show-observations").click()');
+  for (let i = 0; i < 100; i++) {
+    if (await evaluate('!!document.querySelector(".history-observed .recharts-line-curve")')) break;
+    await pause(100);
+  }
+  assert.ok(await evaluate('!!document.querySelector(".history-idw .recharts-line-curve")'));
+  assert.ok(await evaluate('(document.querySelector(".history-observed .recharts-line-curve").getAttribute("d").match(/M/g) || []).length > 1'), 'Observation nulls split the actual SVG path');
+  assert.equal(await evaluate('document.querySelector(".history-table tbody tr td:last-child").textContent'), 'Missing');
+  assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('depth increases downward'));
+  async function hoverFirstHistoryPoint() {
+    await evaluate('document.querySelector(".history-panel").scrollIntoView({ block: "start" })');
+    for (let i = 0; i < 100; i++) {
+      if (await evaluate('!!document.querySelector(".history-selected .recharts-line-curve")')) break;
+      await pause(100);
+    }
+    const position = await evaluate('(() => { const path = document.querySelector(".history-selected .recharts-line-curve"); const point = path.getPointAtLength(0); const screen = new DOMPoint(point.x, point.y).matrixTransform(path.getScreenCTM()); return { x: screen.x + 1, y: screen.y }; })()');
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: position.x, y: position.y });
+    for (let i = 0; i < 100; i++) {
+      if (await evaluate('!!document.querySelector(".history-tooltip")')) return;
+      await pause(100);
+    }
+    throw new Error('History tooltip did not appear');
+  }
+  await hoverFirstHistoryPoint();
+  const observationTooltip = await evaluate('document.querySelector(".history-tooltip").innerText');
+  assert.ok(observationTooltip.includes('2024-08-01') && observationTooltip.includes('Observed reading: Missing'));
+  const heldout = fixturePredictions.wells.find(well => well.role === 'holdout');
+  await evaluate(`document.querySelector('.well-list button span').closest('ul').querySelectorAll('button')[${fixturePredictions.wells.indexOf(heldout)}].click()`);
+  await waitText(`History: ${heldout.id} / gcn_lstm`);
+  assert.equal(await evaluate('document.getElementById("show-observations").disabled'), true);
+  assert.equal(await evaluate('document.querySelectorAll(".history-observed").length'), 0);
+  assert.equal(await evaluate('document.querySelector(".history-table thead").textContent.includes("Observed")'), false);
+  await hoverFirstHistoryPoint();
+  assert.equal(await evaluate('document.querySelector(".history-tooltip").innerText.includes("Observed")'), false);
+  console.log('PASS browser: optional IDW/observations, real null-path breaks, units/direction and holdout observation exclusion');
+  for (const mode of ['history-gaps', 'history-calendar-gap']) {
+    await navigate(mode); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+    for (let i = 0; i < 100; i++) {
+      if (await evaluate(`!!document.querySelector('${selectedPath}')`)) break;
+      await pause(100);
+    }
+    assert.ok(await evaluate(`(document.querySelector('${selectedPath}').getAttribute('d').match(/M/g) || []).length > 1`));
+    console.log(`PASS browser: ${mode} produces visible path gaps, not interpolation`);
+  }
+  await navigate('history-empty'); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+  await waitText('No displayable history values');
+  assert.equal(await evaluate('document.querySelectorAll(".history-panel .recharts-wrapper").length'), 0);
+  await evaluate('document.getElementById("show-idw").click()');
+  for (let i = 0; i < 100; i++) {
+    if (await evaluate('!!document.querySelector(".history-idw .recharts-line-curve")')) break;
+    await pause(100);
+  }
+  assert.equal(await evaluate(`!!(document.querySelector('${selectedPath}')?.getAttribute('d') || '').match(/[ML]/)`), false);
+  assert.ok(await evaluate('!!document.querySelector(".history-idw .recharts-line-curve")'));
+  console.log('PASS browser: empty/unavailable prediction history and explicitly requested comparison remain distinct');
+  await navigate('valid'); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+  await evaluate('document.getElementById("show-idw").click(); document.getElementById("show-observations").click()');
   if (new URL(origin).port === '5173') {
     const componentPath = new URL('../src/WellMap.tsx', import.meta.url);
     const original = await readFile(componentPath, 'utf8');
@@ -291,6 +367,16 @@ try {
   for (const width of [390, 1280]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 700 });
     assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), `No horizontal overflow at ${width}px`);
+    await evaluate('document.querySelector(".history-panel").scrollIntoView({ block: "start" })');
+    await pause(300);
+    assert.ok(await evaluate('document.querySelector(".history-panel .recharts-wrapper").getBoundingClientRect().width > 200'));
+    const screenshot = await send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(join(tmpdir(), `alter-ego-a05-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+    if (width === 390) {
+      await evaluate('document.querySelector(".history-plot").scrollIntoView({ block: "start" })');
+      const plotScreenshot = await send('Page.captureScreenshot', { format: 'png' });
+      await writeFile(join(tmpdir(), 'alter-ego-a05-390-plot.png'), Buffer.from(plotScreenshot.data, 'base64'));
+    }
   }
   console.log('PASS browser: 390px and 1280px layouts have no horizontal overflow');
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');

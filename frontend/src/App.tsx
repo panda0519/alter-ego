@@ -79,11 +79,11 @@ export default function App() {
             <p className="empty-state">Awaiting a validated dataset.</p>
           </section>}
 
-          <section className="panel" aria-labelledby="chart-title">
+          {!batch && <section className="panel" aria-labelledby="chart-title">
             <p className="eyebrow">03 / History</p>
             <h2 id="chart-title">Depth over time</h2>
-            <p className="empty-state">{batch ? `${batch.predictions.dates.length} series dates loaded. Chart display is not yet available. Depth is in metres below ground.` : 'Awaiting a validated dataset.'}</p>
-          </section>
+            <p className="empty-state">Awaiting a validated dataset.</p>
+          </section>}
 
           <section className="panel" aria-labelledby="results-title">
             <p className="eyebrow">04 / Evaluation</p>

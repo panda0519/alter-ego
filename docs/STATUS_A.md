@@ -1,5 +1,104 @@
 # Person A status
 
+## A05 handoff - 2026-10-24 IST
+
+Phase: A05 implemented and required acceptance checks PASS on feature/person-a.
+Read completely: AGENTS.md, README_FIRST.md, MASTER_PLAN.md,
+docs/COMMON_DECISIONS.md, this status, prompts/A05.md, contracts/README.md,
+all four JSON schemas and fixtures, relevant frontend source/checks, plus
+ml/configs/prototype.yaml. A06 read only to preserve the phase boundary.
+No contracts, Person B files, dependency manifests/locks or public data changed.
+
+Files changed:
+- frontend/src/HistoryChart.tsx: Recharts line chart from the validated batch;
+  selected reconstruction, optional explicitly labelled IDW comparison and
+  observed-reading overlays, legend, date/value tooltip and accessible data
+  table. Units m below ground; positive depth direction explained; reversed
+  vertical axis displays greater depth downward. Linear paths, no animations,
+  connectNulls=false, and separate styles distinguish series without gap filling.
+  Table/tooltip mark null as Missing. Empty/all-null/unavailable selections show
+  helpful states without substituting another method. Invalid selections clear
+  the chart; existing App loading/export-error states keep chart unmounted.
+- frontend/src/data/history.ts: date/index-aligned chart projection; timestamps
+  derive only from exported dates. Nulls/zero preserved. Missing calendar dates
+  break paths using a null separator at the next supplied timestamp, without
+  inventing readings or dates. Only actual export rows enter the data table.
+  Held-out observations are excluded before generating chart payload, domain,
+  tooltip and table, even when observation-overlay preference is enabled.
+- frontend/src/WellWorkspace.tsx: passes the existing single well/method state
+  directly to the chart; data is derived each render. Chart remount key clears
+  stale tooltips when selected well/method or visible overlays change.
+- frontend/src/App.tsx: unloaded chart placeholder only; loaded chart is inside
+  the shared selection workspace.
+- frontend/src/styles.css: full-width responsive chart, wrapped overlay controls,
+  readable tooltip and scrollable accessible table.
+- frontend/checks/history.test.mjs: 26 new projection/privacy/edge-case tests.
+- frontend/checks/browser.mjs: A05 chart interactions, path/tooltip/overlay tests,
+  screenshots and earlier-phase regressions. Sets explicit desktop dimensions
+  for hover tests. Map initialization-failure injection now targets map observer
+  attachment only, preserving the chart's independent ResizeObserver.
+- docs/STATUS_A.md: this verified evidence and handoff.
+
+Actual verification (Node v24.22.1; frontend commands from frontend/):
+- `node --test checks/batch.test.mjs checks/selection.test.mjs checks/coordinates.test.mjs checks/history.test.mjs`:
+  PASS 80 tests, 0 failures (54 regressions + 26 A05). Covers all 18 well/method
+  date/value projections, mutation resistance, holdout truth exclusion, overlay
+  exclusion, null runs, zeros, omitted dates, unavailable predictions with/without
+  explicit IDW overlay, invalid selection, empty/incomplete arrays and one-date
+  data. Incomplete arrays are also rejected upstream by existing loader tests.
+- `npm run build`: PASS TypeScript/Vite; 674 modules; 18.96 kB CSS and
+  894.87 kB JS (263.18 kB gzip JS). Existing non-failing >500 kB chunk warning
+  persists after adding Recharts. No warning suppression or dependency changes.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from root: PASS schemas/semantic consistency; not model accuracy validation.
+- `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort` followed by
+  `node checks/browser.mjs`: final production suite PASS. Chart/table dates and
+  values match all 18 well/method combinations. Observed and IDW overlays work;
+  actual SVG paths split at null runs and omitted calendar dates. Tooltip shows
+  full export date and Missing for null observations. Held-out wells have no
+  observation line, tooltip reading or table column. All-null selected series
+  has an empty state; explicit IDW comparison remains distinctly labelled.
+  Includes A02-A04 validation, selection, keyboard, map-failure/retry and cleanup
+  regressions; zero uncaught browser runtime exceptions.
+- `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort` then
+  `$env:ALTER_EGO_CHECK_ORIGIN='http://127.0.0.1:5173'; node checks/browser.mjs`:
+  final full suite PASS, including StrictMode and actual Fast Refresh source
+  edit/restoration. 58 canceled CDP interceptions during cleanup were counted
+  separately; zero uncaught page exceptions. All tile requests intercepted
+  locally. Headless Edge ran with approved access outside the sandbox.
+- Browser checks at 390px/1280px: PASS no horizontal overflow and measurable
+  chart width. Desktop, mobile panel and full mobile plot PNGs captured to
+  Windows TEMP as alter-ego-a05-1280.png, alter-ego-a05-390.png and
+  alter-ego-a05-390-plot.png; visually reviewed readable axes, wrapping legend,
+  controls and distinct series. These temporary screenshots are not staged.
+- Initial visualization attempts exposed test assumptions: an empty SVG element
+  can have no geometry, dot DOM is optional, and the default headless viewport
+  placed hover off-screen. Tests now inspect visible path geometry, hover its
+  first screen-coordinate point and set an explicit viewport. Final checks above
+  pass; no failing acceptance check is waived. An initial fixture-read command
+  had a parenthesis typo and was corrected before implementation.
+- React/source review: no duplicated well/method state, escaped data labels,
+  native checkbox controls, semantic table, no hidden truth in chart inputs,
+  no scientific recalculation, no fabricated measurements or accuracy metrics.
+- Git review: A-owned frontend source/checks and this status only; generated
+  files/secrets excluded. `git diff --check` and staged diff check PASS.
+
+Remaining: no known A05 blocker. Bundle-size warning is non-blocking; full
+screen-reader certification, live public tiles and Person B's actual export
+integration remain PENDING. Earlier unverified shared/account items remain
+PENDING. Fixture curves are illustrative; metric statuses remain not_run.
+
+A06 can safely begin when authorized. A05 conservatively withholds all holdout
+observations; no sensor-available/outage/reveal state machine or reveal control
+has been implemented. A06 must explicitly authorize held-out observation
+visibility after reveal while keeping outage chart inputs sanitized. No A06-A10
+implementation performed here.
+
+Handoff: schema 1.0.0; fixture-layout-v1; synthetic-layout-six-wells;
+artifact_kind=fixture. Commit: this A05 commit; SHA reported after creation.
+No push, merge or deployment. To run: `cd frontend` then
+`npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+
 ## A04 handoff - 2026-10-24 IST
 
 Phase: A04 implemented and acceptance checks PASS on feature/person-a.
