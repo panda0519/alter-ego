@@ -29,7 +29,9 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   }
   await navigate('valid');
   const body = await waitText('40 wells loaded');
-  for (const label of ['SYNTHETIC / PROVISIONAL', '+dirty', predictions.meta.run_id, 'Physics reconstruction is not completed.', 'not been independently verified']) assert.ok(body.includes(label), label);
+  for (const label of ['SYNTHETIC / PROVISIONAL', '+dirty', predictions.meta.run_id, 'Physics reconstruction is not completed.', 'not been independently verified',
+    'IDW performed better on the holdout test', 'A physics-trained model is not selected', 'Nodus and live Agent37 integrations are not verified',
+    'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
   for (const name of Object.keys(raw)) {
     const served = await evaluate(`fetch('/data/${name}.json').then(response => response.json()).then(value => value.meta)`);
     assert.deepEqual(served, predictions.meta);

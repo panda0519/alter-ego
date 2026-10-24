@@ -1,24 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { validateBatch, loadBatch } from '../src/data/loadBatch.ts';
 import { methods } from '../src/data/models.ts';
 import { buildHistory } from '../src/data/history.ts';
 import { initialWorkspace, workspaceReducer } from '../src/data/outage.ts';
 import { resultRows, priorityRows } from '../src/data/results.ts';
-import { provisionalReasons } from '../src/data/provenance.ts';
+import { provisionalReasons, reportedTrainingRevisions } from '../src/data/provenance.ts';
 
-const manifest = JSON.parse(await readFile(new URL('./candidate.json', import.meta.url)));
+const manifest = JSON.parse(await readFile(new URL('../src/data/handoff.json', import.meta.url)));
 const raw = {};
 for (const [name, hash] of Object.entries(manifest.sha256)) {
-  const content = await readFile(new URL(`../public/data/${name}`, import.meta.url));
+  const content = await readFile(process.env.ALTER_EGO_BATCH_DIR ? resolve(process.env.ALTER_EGO_BATCH_DIR, name) : new URL(`../public/data/${name}`, import.meta.url));
   assert.equal(createHash('sha256').update(content).digest('hex'), hash, `${name}: exact source bytes`);
   raw[name.replace('.json', '')] = JSON.parse(content);
 }
 const batch = validateBatch(raw);
 test('pinned four-file candidate retains identity, provenance and provisional limitations', () => {
-  assert.equal(manifest.source_commit, '473bd2b4ba3c791028c805ea743e23d9a6281b4f');
+  assert.equal(manifest.source_commit, '89d85dae75267e3c0ba99abf607f42771fa0c371');
   assert.equal(batch.predictions.meta.run_id, manifest.run_id);
   assert.equal(batch.predictions.meta.dataset_kind, 'synthetic');
   assert.equal(batch.predictions.meta.artifact_kind, 'model_output');
@@ -26,9 +27,20 @@ test('pinned four-file candidate retains identity, provenance and provisional li
   assert.equal(batch.predictions.dates.length, 60);
   assert.equal(batch.predictions.dates[0], '2024-11-02');
   assert.equal(batch.predictions.dates.at(-1), '2024-12-31');
-  assert.ok(batch.run_info.code_revision.endsWith('+dirty'));
+  assert.equal(batch.run_info.code_revision, manifest.export_code_revision);
+  assert.ok(manifest.reported_training_code_revisions.every(revision => revision.endsWith('+dirty')));
   assert.equal(batch.run_info.selected_positive_lambda, null);
   assert.equal(provisionalReasons(batch).length, 3);
+});
+test('reported dirty training provenance is scoped to this run and never mislabels another export', () => {
+  assert.deepEqual(reportedTrainingRevisions(batch), manifest.reported_training_code_revisions);
+  assert.ok(provisionalReasons(batch).includes('Training/source provenance remains unresolved.'));
+  for (const key of ['run_id', 'dataset_id']) {
+    const other = structuredClone(batch); other.predictions.meta[key] = 'different-export';
+    assert.deepEqual(reportedTrainingRevisions(other), []);
+  }
+  const other = structuredClone(batch); other.run_info.code_revision = 'different-revision';
+  assert.deepEqual(reportedTrainingRevisions(other), []);
 });
 test('candidate statuses and exported metrics remain exact; physics is unavailable, never zero', () => {
   for (const row of resultRows(batch)) {

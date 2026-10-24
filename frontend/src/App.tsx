@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BatchError, loadBatch } from './data/loadBatch';
 import type { Batch } from './data/models';
 import WellWorkspace from './WellWorkspace';
-import { provisionalReasons } from './data/provenance';
+import { provisionalReasons, reportedTrainingRevisions } from './data/provenance';
 
 type LoadState = { kind: 'loading' } | { kind: 'ready'; batch: Batch } | { kind: 'missing' | 'invalid'; message: string };
 
@@ -26,6 +26,7 @@ export default function App() {
   const batch = state.kind === 'ready' ? state.batch : null;
   const meta = batch?.predictions.meta;
   const provisional = batch ? provisionalReasons(batch) : [];
+  const trainingRevisions = batch ? reportedTrainingRevisions(batch) : [];
   return (
     <>
       <a className="skip-link" href="#workspace">Skip to workspace</a>
@@ -59,6 +60,12 @@ export default function App() {
           </div>}
           <p>{meta.caption}</p>
           {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
+          {trainingRevisions.length > 0 && <div className="provisional-notice">
+            <p>Historical reconstruction only, not forecasting. Person B reports that IDW performed better on the holdout test; the default remains validation-selected.</p>
+            <p>Positive-lambda training ran, but validation selected warmup weights. A physics-trained model is not selected; the physics export remains not_run.</p>
+            <p>The exporter revision is clean; historical training revisions contain +dirty. Person A has not independently reproduced the training or checkpoints.</p>
+            <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
+          </div>}
           <dl className="metadata">
             <div><dt>Dataset ID</dt><dd>{meta.dataset_id}</dd></div>
             <div><dt>Run ID</dt><dd>{meta.run_id}</dd></div>
@@ -70,7 +77,8 @@ export default function App() {
             <div><dt>Series dates</dt><dd>{batch.predictions.dates.length}</dd></div>
             <div><dt>Default method</dt><dd>{meta.default_method}</dd></div>
             <div><dt>Depth unit</dt><dd>{meta.depth_unit}</dd></div>
-            <div><dt>Source code revision</dt><dd>{batch.run_info.code_revision ?? 'Unavailable'}</dd></div>
+            <div><dt>Exporter code revision</dt><dd>{batch.run_info.code_revision ?? 'Unavailable'}</dd></div>
+            {trainingRevisions.length > 0 && <div><dt>Training source revisions (B reported)</dt><dd>{trainingRevisions.join('; ')}</dd></div>}
             <div><dt>Physics evaluation status</dt><dd>{batch.metrics.methods.gcn_lstm_physics.status}</dd></div>
           </dl>
         </aside>}

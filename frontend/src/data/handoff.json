@@ -1,0 +1,19 @@
+{
+  "source_commit": "89d85dae75267e3c0ba99abf607f42771fa0c371",
+  "source_branch": "feature/model",
+  "source_tip": "2690ac59d6940d6a72cf7fe19b6b2bb7e5b49a02",
+  "run_id": "b12-final-syn40-seed42-r2",
+  "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+  "export_code_revision": "9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b",
+  "reported_training_code_revisions": [
+    "27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty",
+    "473bd2b4ba3c791028c805ea743e23d9a6281b4f+dirty"
+  ],
+  "evidence_status": "Person B reported; local checkpoints and training were not independently reproduced by Person A.",
+  "sha256": {
+    "predictions.json": "3a526df6f36bea39e79210ea25def1277fffd124e5af8e0983a06c6ce4681871",
+    "metrics.json": "187889d55c95613d7ef7b8a93b826b7a76ad131f34b8e8b53c71d24543241ec9",
+    "run_info.json": "35be05d273c50bca33d348a27f84d5786be9327dddd52b9b3115da6833e99e4e",
+    "agent_context.json": "7a99db5ff9671f04b83d76e34ef8986e574dfe409717732b8cb811c1fa0109a0"
+  }
+}

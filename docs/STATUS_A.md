@@ -1,5 +1,154 @@
 # Person A status
 
+## A09 B12-r2 local integration handoff - 2026-10-24 IST
+
+Local integration: PASS. Person B's intended final export is integrated, but remains
+SYNTHETIC / PROVISIONAL. Scientific verification and final deployed A09 acceptance
+are NOT claimed. This entry supersedes the B09 batch below; older entries are history.
+
+Input frontend commit: fb98dafd53349a864eb13c414100282c50ab8a6c.
+Fetched feature/model tip: 2690ac59d6940d6a72cf7fe19b6b2bb7e5b49a02.
+Pinned candidate: 89d85dae75267e3c0ba99abf607f42771fa0c371, verified ancestor
+of that remote tip. Candidate directory: artifacts/exports/b12-final-syn40-seed42-r2/.
+Run ID: b12-final-syn40-seed42-r2.
+Dataset: 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351,
+synthetic / model_output / contract 1.0.0. Generated 2026-10-24T18:03:30Z,
+as_of_date 2024-12-31; 40 wells, 60 dates 2024-11-02 through 2024-12-31.
+Default method gcn_lstm; depth m_below_ground.
+
+Read AGENTS.md, MASTER_PLAN.md, prompts/A09.md, this status, docs/HANDOFF.md,
+contracts/README.md, model config and relevant source/tests. Local ml/STATUS_B.md
+is the old template because no merge was performed; reviewed the actual fetched
+ml/STATUS_B.md, B_PHASE_3/4/5_SELF_CHECK.md, ml/evaluate.py and evaluation tests
+from feature/model read-only. No ML implementation, contracts or B-owned files changed.
+
+Acceptance before publication:
+- git fetch origin feature/model completed without merge/checkout/remote writes.
+  GitHub read-only branch listing independently confirmed tip 2690ac5 and release
+  branch fb98daf. Candidate exists remotely and all four files equal the tip copies.
+- Extracted four files with git show into Windows TEMP; SHA-256 matched every
+  hash reported in B's fetched status. Candidate schemas exactly match local schemas.
+- Ran Python validator and the full frontend suite against the staged directory
+  before copying. All 123 then-existing tests passed. Only then replaced the
+  complete four-file frontend/public/data batch. No JSON field was rewritten.
+- frontend/src/data/handoff.json records source commit/tip/run/dataset, exact
+  hashes, clean export revision and B-reported historical dirty training revisions.
+  Supersedes frontend/checks/candidate.json, whose old B09 manifest was removed.
+
+Exact SHA-256 (also checked against source/public/dist/HTTP/staged Git bytes):
+- predictions.json: 3a526df6f36bea39e79210ea25def1277fffd124e5af8e0983a06c6ce4681871
+- metrics.json: 187889d55c95613d7ef7b8a93b826b7a76ad131f34b8e8b53c71d24543241ec9
+- run_info.json: 35be05d273c50bca33d348a27f84d5786be9327dddd52b9b3115da6833e99e4e
+- agent_context.json: 7a99db5ff9671f04b83d76e34ef8986e574dfe409717732b8cb811c1fa0109a0
+
+Frontend changes:
+- App.tsx distinguishes the exporter revision from reported training revisions.
+  Visible disclosures retain synthetic historical reconstruction, no forecasting/
+  field accuracy, IDW's better holdout result, unavailable physics export, dirty
+  training provenance and unverified Nodus/live Agent37. Agent37 stays optional.
+- data/provenance.ts scopes handoff provenance to matching run/dataset/export
+  revision, preventing another future batch from inheriting this run's disclosure.
+  Provisional status remains; clean export code does not erase dirty training.
+- checks/candidate.test.mjs supports staged data via ALTER_EGO_BATCH_DIR and
+  verifies the new source identity; adds a provenance scoping regression.
+- checks/candidate-browser.mjs asserts all required limitations in the rendered UI.
+- No package/lock change, dependency installation, science recalculation, model
+  execution, backend, contract edit, paid resource or A10 implementation.
+
+Final local checks (Node v24.22.1, frontend commands from frontend/):
+- node --test --test-reporter=spec checks/*.test.mjs: PASS 124 tests, zero
+  failures/skips (117 fixture regressions, 7 candidate checks). Exact identities,
+  hashes, nulls, statuses, time-series alignment, summary-only context, all 120
+  well/method combinations, repeated reveal/reset, all missing-file/mixed-metadata
+  cases and recovery pass. Staged prepublication suite passed separately above.
+- Python scripts/validate_exports.py: PASS temporary candidate before publication,
+  frontend/public/data after publication, and unchanged contracts/fixtures.
+  Checks exact metadata, date/series alignment, nulls, summaries/priorities and
+  metric statuses. No withheld observations in agent context. Schema validation
+  does not prove training correctness or leakage prevention.
+- npm run build: PASS TypeScript/Vite; 682 modules, 20.26 kB CSS,
+  913.12 kB JS / 268.58 kB gzip. Non-blocking >500 kB chunk warning retained.
+- Production preview on http://127.0.0.1:4173: all four JSON requests HTTP 200,
+  application/json, exact pinned hashes and byte equality with public and dist.
+- ALTER_EGO_CHECK_BATCH=candidate; node checks/browser.mjs: PASS against actual
+  local production files. All 120 well/method selections match chart/table values,
+  map selection and statuses. Result fields and priority order match exports.
+  48 outage/reveal/reset cycles across 8 held-out wells, 3 methods, desktop 1280px
+  and mobile 390px PASS. Null truth preserved; unavailable physics never becomes
+  zero or another method; switching/reset hides previous answers. Keyboard outage,
+  incomplete/mismatched/malformed rejection/retry, map-tile fallback and optional
+  context check PASS. All required limitation text visible. Zero uncaught errors.
+- With ALTER_EGO_CHECK_BATCH unset, node checks/browser.mjs: full fixture browser
+  regressions PASS, including 24 demo cycles, tooltip privacy, keyboard list/map/
+  results, map failures/timeouts/recovery, null/calendar gaps, dataset reset and
+  optional Agent37 malformed/missing/network/timeout/retry handling. No exceptions.
+- Screenshots captured to TEMP; mobile header and history reviewed: labels/chart
+  readable; page overflow assertions pass at desktop/mobile widths. Tile responses
+  are intercepted locally; external map-service availability is not certified.
+- React review: provenance is derived during render, escaped text, no added state
+  or effects; existing keyboard/loading/error semantics remain intact.
+- git diff --check and cached check PASS; staged paths/content reviewed before
+  commit. Only frontend integration/checks and this note; no secrets, credentials,
+  generated build/screenshots, local arrays, model weights or B files staged.
+
+Model evidence review and limitations (B-reported, not locally reproduced):
+- Exporter code_revision is clean 9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b,
+  ancestor of the candidate. Git confirms changes from d622419 to that revision
+  are status/checklist documents only. This does not establish clean training.
+- Lambda-zero training code_revision remains
+  27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty. Positive-run payload revisions
+  remain 473bd2b4ba3c791028c805ea743e23d9a6281b4f+dirty. Neither is rewritten.
+  Selected checkpoint hash: 721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a.
+- B's phase 4 evidence reports positive-lambda training, but both retained epoch 3
+  at lambda 0 with weights equal to the lambda-zero model. Physics-trained weights
+  are not selected; gcn_lstm_physics remains not_run, predictions and metrics null,
+  summaries unknown, selected_positive_lambda null. No physics accuracy gain.
+- Reviewed selection/scoring code: default chosen from common validation MAE
+  before holdout; one score per ending date; export checks same device and frozen
+  scores. B reports 61 ML tests PASS (one sandbox CUDA warning), same-device reload
+  difference 0.0 m, tolerance 0.0001 m. CPU difference 0.0009213380646091451 m was
+  rejected; tolerance was not weakened. A did not run B's ML suite or GPU training:
+  private bundle, checkpoint payloads, manifests and frozen evaluation are absent
+  here. Full model/scientific verification remains PENDING independent reproduction.
+- Reported validation: 713 pairs, 10 train-masked wells; MAE IDW 1.1042053369012759 m,
+  GCN-LSTM 0.8598469860694834 m. Default stays validation-selected gcn_lstm.
+- Reported holdout: 1109 common pairs / 8 wells, 1319 valid labels,
+  coverage 0.8407884761182715. IDW MAE/RMSE 1.4958895956006706 / 2.034039534948381 m;
+  GCN-LSTM 1.626403108513909 / 2.0547485083440558 m. IDW performed better.
+- Synthetic known-location historical reconstruction, not field accuracy, live
+  monitoring, forecasting, official danger thresholds or hydrological validation.
+- Held-out truth never enters chart/tooltip/table before permitted Reveal and
+  never enters agent context. Public predictions.json intentionally includes
+  reveal observations per contract: presentation privacy is not access control.
+- Nodus unverified/not run; no job IDs. Live Agent37 PENDING/OPTIONAL; account
+  confirmed by user only, no live fetch/answer evidence. No joint rehearsals yet.
+
+Release/deployment handoff (NOT performed):
+- Local/remote release/alter-ego-demo observed at fb98daf. After reviewing and
+  approving this commit, disable/confirm disabled Render auto-deploy first.
+  Fetch release, switch to it with a clean tree, fast-forward to origin/release,
+  then git merge --ff-only <this verified integration commit>. Stop on divergence;
+  never reset, force-push, rewrite main or merge B automatically. Push release only
+  after explicit approval; switch back to feature/person-a afterward.
+- Current Render docs confirm files outside Root Directory are unavailable at
+  build time. frontend imports repository-level contracts, so proposed settings:
+  Static Site; repo panda0519/alter-ego; branch release/alter-ego-demo;
+  Root Directory BLANK (repository root); build cd frontend && npm ci && npm run build;
+  publish frontend/dist; NODE_VERSION=24.22.1; SKIP_INSTALL_DEPS=true;
+  auto-deploy/PR previews disabled; no start command/router rewrite/backend;
+  VITE_AGENT37_URL and VITE_AGENT_CONTEXT_URL unset. No client-side secrets.
+  Sources: https://render.com/docs/monorepo-support,
+  https://render.com/docs/static-sites, https://render.com/docs/node-version.
+- This root/branch proposal differs explicitly from prompts/A09.md's frontend/main
+  settings; user must confirm the concrete deployment target/configuration.
+- Pending approval: release update/push and deployment; confirm My Workspace
+  (tea-da17ge8u01pc739l275g), exact Static Site name/service ID, Render GitHub repo
+  authorization and auto-deploy state. No Render resource inspection/change or
+  deployment was performed. Existing remote main is untouched.
+- Final deployed URL/hash checks, both-laptop acceptance and rehearsals PENDING.
+  A09 local integration passes; final A09 acceptance is NOT declared. Commit only
+  on feature/person-a; no push/merge/release update/deployment. SHA reported after commit.
+
 ## A09 provisional local integration checkpoint - 2026-10-24 IST
 
 Local integration: PASS. Final scientific acceptance: PENDING. Deployment: BLOCKED

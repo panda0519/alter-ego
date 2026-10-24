@@ -1,15 +1,15 @@
 {
   "meta": {
     "schema_version": "1.0.0",
-    "run_id": "b09-gcn-lstm-lambda0-syn40-seed42",
+    "run_id": "b12-final-syn40-seed42-r2",
     "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
     "dataset_kind": "synthetic",
     "artifact_kind": "model_output",
-    "generated_at_utc": "2026-10-24T17:08:20Z",
+    "generated_at_utc": "2026-10-24T18:03:30Z",
     "as_of_date": "2024-12-31",
     "default_method": "gcn_lstm",
     "depth_unit": "m_below_ground",
-    "caption": "Lambda 0 GCN-LSTM and IDW on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Physics was not run. Default method is the lower common-mask validation MAE. This is not field accuracy."
+    "caption": "Selected reconstruction on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Default method is gcn_lstm by common-mask validation MAE. The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. This is not field accuracy."
   },
   "dates": [
     "2024-11-02",
