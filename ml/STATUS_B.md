@@ -14,6 +14,6 @@ Request for A: validate `artifacts/exports/b05-idw-syn40-seed42` before any copy
 
 Nodus: still PENDING. Not logged in. No org, credit, or job. No spend.
 
-Git: `feature/model`. Phase 2 handoff commit SHA is filled below after `git commit`. Parent `37eedee9d5c7eccf6c86d6eccf09fd4623030281`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
+Git: `feature/model` handoff `f102d3a590dadf5cb052ea9c92effcf3adffafe6` (`theravij <2501640100693@psit.ac.in>`). Parent `37eedee9d5c7eccf6c86d6eccf09fd4623030281`. The export JSON still records `code_revision` `37eedee9d5c7eccf6c86d6eccf09fd4623030281+dirty` from the moment it was written. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
 
 Next: stop before the graph and GCN. Nodus login remains a separate operator step.

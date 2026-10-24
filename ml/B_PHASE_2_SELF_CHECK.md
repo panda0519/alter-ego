@@ -18,7 +18,7 @@ Date: 24 October 2026. Branch `feature/model`. Parent `37eedee9d5c7eccf6c86d6ecc
 | Fixture validator | `.venv/bin/python scripts/validate_exports.py contracts/fixtures` | Unchanged fixture batch still passes | Exit 0, same PASS line as above | PASS |
 | Config bytes | `sha256sum ml/configs/prototype.yaml` | Phase 0 hash unchanged | `859ac9e4014c4972132233aed5ad1fec1be1ad4cbebeaa7c0ebbac3e32991e32` | PASS |
 | Nodus account | Not run | Stays pending until the operator logs in | No login, org, credit, or job in this phase | PENDING |
-| Handoff commit | Git commit of this phase on `feature/model` | A real SHA, no push | Recorded in `ml/STATUS_B.md` after the commit. The JSON `code_revision` stays the pre-commit dirty parent and is not rewritten | PASS |
+| Handoff commit | Git commit of this phase on `feature/model` | A real SHA, no push | `f102d3a590dadf5cb052ea9c92effcf3adffafe6`. The JSON `code_revision` stays `37eedee9d5c7eccf6c86d6eccf09fd4623030281+dirty` and was not rewritten. Not pushed | PASS |
 
 File SHA-256:
 
