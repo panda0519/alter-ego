@@ -18,6 +18,7 @@ from pathlib import Path
 import numpy as np
 
 from ml.baseline import predict_idw, score_pairs
+from ml.infer import shared_label_scores
 from ml.data.sources import load_config
 from ml.export.contracts import assert_completed_common_mask, run_reference_validator
 from ml.export.summaries import summarise, unknown_summary
@@ -218,6 +219,225 @@ def build_batch(config: dict, bundle: dict, run_id: str, generated_at_utc: str) 
         "metrics": metrics,
         "run_info": info,
         "agent_context": agent,
+    }
+
+
+def export_gcn_lstm_batch(
+    config_path: Path,
+    bundle: dict,
+    run_id: str,
+    output: Path,
+    neural_m: np.ndarray,
+    *,
+    lambda_value: float,
+    checkpoint_sha256: str,
+    device: str,
+    generated_at_utc: str | None = None,
+    repo_root: Path | None = None,
+) -> dict:
+    """Write IDW plus a completed lambda-0 GCN-LSTM. Physics stays not_run.
+
+    Metric pairs are the well-dates where both completed methods have a finite
+    prediction and the permitted label exists. The IDW chart series itself is
+    still the full baseline. Default method is the lower of the two common-mask
+    validation MAEs. A tie stays with IDW. This is not the later positive-lambda
+    comparison.
+    """
+    if float(lambda_value) != 0.0:
+        raise ValueError("this export is the lambda 0 GCN-LSTM")
+    if not RUN_ID.fullmatch(run_id):
+        raise ValueError(f"run id is not a single path segment: {run_id}")
+    if output.name != run_id:
+        raise ValueError("output directory name must equal the run id")
+    if output.exists():
+        raise FileExistsError(f"refusing to overwrite existing run folder {output}")
+    config = load_config(config_path)
+    stamp = generated_at_utc or datetime.now(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+    documents = _documents_with_neural(config, bundle, run_id, stamp, neural_m, lambda_value, checkpoint_sha256, device)
+    root = repo_root or Path(config_path).resolve().parents[2]
+    attach_runtime_identity(documents, root)
+    assert_completed_common_mask(documents["metrics"])
+    staging = output.parent / f".staging-{run_id}"
+    if staging.exists():
+        raise FileExistsError(f"staging folder already exists: {staging}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    staging.mkdir()
+    try:
+        for name, document in documents.items():
+            _dump(staging / f"{name}.json", document)
+        checked = run_reference_validator(staging, root)
+        if checked.returncode != 0:
+            raise RuntimeError(checked.stdout + checked.stderr)
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+    staging.rename(output)
+    return documents["metrics"]["meta"]
+
+
+def _documents_with_neural(config, bundle, run_id, generated_at_utc, neural_m, lambda_value, checkpoint_sha256, device) -> dict:
+    idw = predict_idw(
+        bundle["depth_m"],
+        bundle["depth_valid"],
+        np.array(bundle["roles"]),
+        bundle["latitude"],
+        bundle["longitude"],
+        power=float(config["baseline"]["power"]),
+        max_donors=int(config["baseline"]["max_donors"]),
+    )
+    neural = np.asarray(neural_m, dtype=np.float64)
+    if neural.shape != idw.shape:
+        raise ValueError("neural predictions do not match the bundle grid")
+    n_train = bundle["n_train"]
+    n_validation = bundle["n_validation"]
+    n_days = len(bundle["dates"])
+    roles = np.array(bundle["roles"])
+    validation = shared_label_scores(
+        idw, neural, bundle["depth_m"], bundle["depth_valid"], roles,
+        n_train, n_train + n_validation, "train_masked",
+    )
+    test = shared_label_scores(
+        idw, neural, bundle["depth_m"], bundle["depth_valid"], roles,
+        n_train + n_validation, n_days, "holdout",
+    )
+    if validation["pairs"] < 1 or test["pairs"] < 1:
+        raise RuntimeError(
+            "IDW and GCN-LSTM have no shared validation or test pairs. "
+            f"validation_pairs={validation['pairs']} test_pairs={test['pairs']}"
+        )
+    unrestricted = score_pairs(
+        idw, bundle["depth_m"], bundle["depth_valid"], roles,
+        n_train, n_train + n_validation, "train_masked",
+    )
+    if validation["left_mae_m"] < validation["right_mae_m"]:
+        default_method = "idw"
+    elif validation["right_mae_m"] < validation["left_mae_m"]:
+        default_method = "gcn_lstm"
+    else:
+        default_method = "idw"
+    export_index = _history_index(bundle, int(config["export"]["history_days"]))
+    export_dates = [bundle["dates"][index] for index in export_index]
+    meta = _meta(config, bundle, run_id, generated_at_utc, export_dates[-1])
+    meta["default_method"] = default_method
+    meta["caption"] = (
+        f"Lambda 0 GCN-LSTM and IDW on the {bundle['dataset_kind']} dataset {bundle['dataset_id']}. "
+        "Physics was not run. Default method is the lower common-mask validation MAE. "
+        "This is not field accuracy."
+    )
+    change_days = int(config["export"]["change_days"])
+    wells = []
+    for well, station_id in enumerate(bundle["station_ids"]):
+        idw_series = [_number(idw[index, well]) for index in export_index]
+        neural_series = [_number(neural[index, well]) for index in export_index]
+        observed = [
+            _number(bundle["depth_m"][index, well]) if bundle["depth_valid"][index, well] else None
+            for index in export_index
+        ]
+        wells.append({
+            "id": station_id,
+            "latitude": float(bundle["latitude"][well]),
+            "longitude": float(bundle["longitude"][well]),
+            "role": bundle["roles"][well],
+            "observations_m": observed,
+            "predictions_m": {
+                "idw": idw_series,
+                "gcn_lstm": neural_series,
+                "gcn_lstm_physics": [None] * len(export_dates),
+            },
+            "summaries": {
+                "idw": summarise(export_dates, idw_series, change_days),
+                "gcn_lstm": summarise(export_dates, neural_series, change_days, "gcn_lstm_ending_window"),
+                "gcn_lstm_physics": unknown_summary("method_not_run"),
+            },
+        })
+    metrics = {
+        "meta": meta,
+        "evaluation": {
+            "test_group": "holdout",
+            "same_common_mask": True,
+            "split_seed": int(config["seed"]),
+            "notes": (
+                "Completed methods share well-dates with a finite IDW prediction, a finite lambda-0 "
+                "GCN-LSTM prediction, and a valid label. Validation uses train_masked wells. Test uses "
+                "holdout wells. Each date is one pair. gcn_lstm_physics was not run and is outside this mask. "
+                f"Unrestricted IDW validation MAE on train_masked labels is {unrestricted['mae_m']} m "
+                f"over {unrestricted['pairs']} pairs; the IDW metric in this file is the common mask, "
+                "not that unrestricted score. Chart rows are the exported test dates and are not the pair count. "
+                "Positive-lambda selection is later."
+            ),
+        },
+        "methods": {
+            "idw": _scored(validation, test, "left", None),
+            "gcn_lstm": _scored(validation, test, "right", float(lambda_value)),
+            "gcn_lstm_physics": _not_run(),
+        },
+    }
+    info = {
+        "meta": meta,
+        "code_revision": None,
+        "checkpoint_sha256": checkpoint_sha256,
+        "python_version": sys.version.split()[0],
+        "torch_version": _torch_version(),
+        "device": device,
+        "nodus_job_ids": [],
+        "selected_positive_lambda": None,
+        "physics_assumptions": [
+            "Physics regulariser was not run. q was not estimated.",
+            "gcn_lstm was trained at lambda 0 with masked standardised MSE only.",
+            "gcn_lstm_physics is not_run. This default is not a positive-lambda selection.",
+        ],
+        "data_sources": _sources(bundle) + [
+            "GCN-LSTM uses the frozen eight features and previous-day visible lags.",
+            "Each neural date is the last position of the window ending on that date.",
+            f"Checkpoint sha256 {checkpoint_sha256}. Device {device}.",
+        ],
+    }
+    method_key = default_method
+    agent = {
+        "meta": meta,
+        "limitations": [
+            f"Dataset {bundle['dataset_id']} is {bundle['dataset_kind']}. Synthetic results are not field accuracy.",
+            "Historical reconstruction only. This is not a live sensor feed or a forecast.",
+            (
+                f"Default method is {default_method} by lower common-mask validation MAE "
+                f"(IDW {validation['left_mae_m']} m, lambda-0 GCN-LSTM {validation['right_mae_m']} m). "
+                "Physics was not run, so this is not the later positive-lambda comparison."
+            ),
+            "Priority thresholds are prototype inspection labels, not official warnings.",
+            "The chart shows the exported test dates. Metric pair counts are the common mask, not the chart length.",
+            "Displayed wells are the frozen cohort. Test metrics use holdout wells only.",
+        ],
+        "wells": [
+            {
+                "id": well["id"],
+                "role": well["role"],
+                "method": method_key,
+                "latest_depth_m": well["summaries"][method_key]["latest_depth_m"],
+                "change_30d_m": well["summaries"][method_key]["change_30d_m"],
+                "priority": well["summaries"][method_key]["priority"],
+                "reason_codes": list(well["summaries"][method_key]["reason_codes"]),
+            }
+            for well in wells
+        ],
+    }
+    return {
+        "predictions": {"meta": meta, "dates": export_dates, "wells": wells},
+        "metrics": metrics,
+        "run_info": info,
+        "agent_context": agent,
+    }
+
+
+def _scored(validation: dict, test: dict, side: str, lambda_value: float | None) -> dict:
+    return {
+        "status": "completed",
+        "validation_mae_m": validation[f"{side}_mae_m"],
+        "validation_pairs": validation["pairs"],
+        "test_mae_m": test[f"{side}_mae_m"],
+        "test_rmse_m": test[f"{side}_rmse_m"],
+        "test_pairs": test["pairs"],
+        "test_wells": test["wells"],
+        "lambda": lambda_value,
     }
 
 

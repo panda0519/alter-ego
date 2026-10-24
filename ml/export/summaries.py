@@ -11,7 +11,12 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 
-def summarise(dates: list[str], predictions: list[float | None], change_days: int = 30) -> dict:
+def summarise(
+    dates: list[str],
+    predictions: list[float | None],
+    change_days: int = 30,
+    method_reason: str = "idw_visible_previous_day",
+) -> dict:
     latest = predictions[-1] if predictions else None
     earlier = date.fromisoformat(dates[-1]) - timedelta(days=change_days)
     earlier_key = earlier.isoformat()
@@ -35,7 +40,7 @@ def summarise(dates: list[str], predictions: list[float | None], change_days: in
         "latest_depth_m": latest,
         "change_30d_m": change,
         "priority": priority,
-        "reason_codes": [reason, "idw_visible_previous_day"],
+        "reason_codes": [reason, method_reason],
     }
 
 

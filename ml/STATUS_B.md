@@ -1,19 +1,21 @@
 # Person B status
 
-Phase: B05 IDW baseline and the first four-file handoff are complete. Graph construction and network training have not started.
+Phase: B06–B09 graph, windows, GCN-LSTM and lambda-0 training are complete. The physics regulariser has not been started.
 
-Dataset: `data/processed/active` stays private and gitignored. `dataset_id` `05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351`. `dataset_kind` synthetic. 40 wells, 731 days, 2023-01-01 through 2024-12-31, metres below ground. Roles 22 visible / 10 train_masked / 8 holdout, seed 42. Date cuts 438 / 109 / 184. This is not field accuracy. Real India-WRIS and CKAN access from Phase 1 is unchanged: no local groundwater CSV, telemetry CSV not downloaded.
+Dataset: private `data/processed/active`, `dataset_id` `05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351`, kind synthetic, seed 42. 40 wells, roles 22 / 10 / 8, date cuts 438 / 109 / 184. Windows 409 / 80 / 155, all inside their partitions. This is not field accuracy.
 
-Export: `artifacts/exports/b05-idw-syn40-seed42`. Schema 1.0.0. `artifact_kind` model_output. `default_method` idw because `gcn_lstm` and `gcn_lstm_physics` are `not_run` with null predictions, not because IDW won a comparison. Generated `2026-10-24T16:43:49Z`. `as_of_date` 2024-12-31. Chart 2024-11-02 through 2024-12-31 (60 days, all 40 cohort wells). IDW validation MAE 1.0872565960824558 m on 959 train_masked pairs. Holdout test MAE 1.5091486021717957 m, RMSE 2.038250204687411 m, 1319 pairs, 8 wells. `code_revision` inside the JSON is `37eedee9d5c7eccf6c86d6eccf09fd4623030281+dirty`. Python 3.11.17, torch 2.8.0+cu128, device cpu. Checkpoint null. `nodus_job_ids` empty. Physics was not run.
+First handoff kept: `artifacts/exports/b05-idw-syn40-seed42` was not edited. Unrestricted IDW validation MAE remains 1.0872565960824558 m on 959 train-masked pairs.
 
-Displayed wells are the 40-well cohort. Scored test wells are the 8 holdout wells. Metric pair counts are the full partitions, not the 60 chart rows. `agent_context.json` is the IDW summary only and has no `observations_m`.
+Lambda 0: local checkpoint `runs/lambda0/checkpoint.pt` (gitignored), sha256 `721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a`. Device actually used: `cuda:NVIDIA GeForce RTX 5050 Laptop GPU`. Python 3.11.17, torch 2.8.0+cu128. 11 epochs, early stop, best epoch 3, validation MAE 0.8598469860694834 m, elapsed 1.113 s. Physics loss was not computed. A one-epoch smoke in `runs/lambda0-smoke` is tagged `development_smoke` and was not exported.
 
-Checks: `ml/B_PHASE_2_SELF_CHECK.md`. `.venv/bin/python -m pytest tests -q --tb=line` : 34 passed in 17.44s. pip check: `No broken requirements found.` `scripts/validate_exports.py` passed on the export and on `contracts/fixtures`. A second baseline command refused to overwrite the folder. `prototype.yaml` sha256 remains `859ac9e4014c4972132233aed5ad1fec1be1ad4cbebeaa7c0ebbac3e32991e32`.
+New export: `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42`. Schema 1.0.0. Generated `2026-10-24T17:08:20Z`. `as_of_date` 2024-12-31. Chart 2024-11-02 through 2024-12-31, 40 displayed wells. `gcn_lstm` completed at lambda 0. `gcn_lstm_physics` is `not_run` with null predictions. Common validation mask: 713 pairs, IDW MAE 1.1042053369012759 m, GCN-LSTM MAE 0.8598469860694834 m. Common holdout mask: 1109 pairs, 8 wells, IDW MAE 1.4958895956006706 m, GCN-LSTM MAE 1.626403108513909 m. Default method is `gcn_lstm` because its validation MAE is lower. The holdout MAE is higher than IDW and was not used to pick the default or the checkpoint. `code_revision` inside the JSON is `27631dc55c4c65d87e394a54ef0aa5879cb69468+dirty`.
 
-Request for A: validate `artifacts/exports/b05-idw-syn40-seed42` before any copy into `frontend/public/data/`. No schema change. Keep `dataset_kind` synthetic and this `dataset_id`. Do not publish `data/processed/active`. If this batch is rejected, the repair is a new run folder. The jsonschema format extra from Phase 0 is still waiting on your review.
+Checks: `ml/B_PHASE_3_SELF_CHECK.md`. `.venv/bin/python -m pytest tests -q --tb=line` : 48 passed in 23.29s. pip check: `No broken requirements found.` `scripts/validate_exports.py` passed on the new export and on `contracts/fixtures`. A repeat train refused to overwrite `runs/lambda0/checkpoint.pt`. `prototype.yaml` sha256 remains `859ac9e4014c4972132233aed5ad1fec1be1ad4cbebeaa7c0ebbac3e32991e32`.
+
+Request for A: validate `artifacts/exports/b09-gcn-lstm-lambda0-syn40-seed42` before any copy into `frontend/public/data/`. No schema change. Keep `dataset_kind` synthetic and this `dataset_id`. The b05 folder is still the IDW-only batch. This default is not the positive-lambda selection. If this batch is rejected, the repair is a new run folder.
 
 Nodus: still PENDING. Not logged in. No org, credit, or job. No spend.
 
-Git: `feature/model` handoff `f102d3a590dadf5cb052ea9c92effcf3adffafe6` (`theravij <2501640100693@psit.ac.in>`). Parent `37eedee9d5c7eccf6c86d6eccf09fd4623030281`. The export JSON still records `code_revision` `37eedee9d5c7eccf6c86d6eccf09fd4623030281+dirty` from the moment it was written. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
+Git: `feature/model`. Phase 3 handoff commit SHA is filled below after `git commit`. Parent `27631dc55c4c65d87e394a54ef0aa5879cb69468`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted.
 
-Next: stop before the graph and GCN. Nodus login remains a separate operator step.
+Next: stop before the physics regulariser. Nodus login remains a separate operator step.

@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 from ml.data.bundle import prepare
-from ml.export.writer import export_baseline, load_export_inputs
+from ml.export.writer import export_baseline, export_gcn_lstm_batch, load_export_inputs
+from ml.train import reload_and_predict, train_lambda0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -28,6 +29,14 @@ def main(argv: list[str] | None = None) -> int:
     baseline_parser.add_argument("--bundle", required=True)
     baseline_parser.add_argument("--run-id", required=True)
     baseline_parser.add_argument("--output", required=True)
+    train_parser = sub.add_parser("train", help="train the lambda-0 GCN-LSTM")
+    train_parser.add_argument("--config", required=True)
+    train_parser.add_argument("--bundle", required=True)
+    train_parser.add_argument("--lambda-target", required=True, type=float)
+    train_parser.add_argument("--run-dir", required=True)
+    train_parser.add_argument("--smoke", action="store_true")
+    train_parser.add_argument("--run-id", default=None)
+    train_parser.add_argument("--output", default=None)
     args = parser.parse_args(argv)
     if args.command == "prepare":
         manifest = prepare(
@@ -60,6 +69,48 @@ def main(argv: list[str] | None = None) -> int:
             "default_method": meta["default_method"],
             "as_of_date": meta["as_of_date"],
             "output": str(Path(args.output)),
+        }, indent=2, allow_nan=False))
+        return 0
+    if args.command == "train":
+        manifest = train_lambda0(
+            Path(args.config),
+            Path(args.bundle),
+            Path(args.run_dir),
+            args.lambda_target,
+            smoke=args.smoke,
+        )
+        exported = None
+        if args.run_id or args.output:
+            if args.smoke:
+                raise ValueError("a smoke run is not exported")
+            if not args.run_id or not args.output:
+                raise ValueError("export needs both --run-id and --output")
+            _bundle, payload, neural = reload_and_predict(Path(args.run_dir), Path(args.bundle))
+            if float(payload["lambda_target"]) != 0.0 or payload["smoke"] is True:
+                raise RuntimeError("export requires the lambda-0 checkpoint")
+            export_inputs = load_export_inputs(Path(args.bundle))
+            exported = export_gcn_lstm_batch(
+                Path(args.config),
+                export_inputs,
+                args.run_id,
+                Path(args.output),
+                neural,
+                lambda_value=0.0,
+                checkpoint_sha256=manifest["checkpoint_sha256"],
+                device=manifest["device"],
+            )
+        print(json.dumps({
+            "run_kind": manifest["run_kind"],
+            "smoke": manifest["smoke"],
+            "device": manifest["device"],
+            "epochs_ran": manifest["epochs_ran"],
+            "best_epoch": manifest["best_epoch"],
+            "best_validation_mae_m": manifest["best_validation_mae_m"],
+            "elapsed_seconds": manifest["elapsed_seconds"],
+            "checkpoint_sha256": manifest["checkpoint_sha256"],
+            "dataset_id": manifest["dataset_id"],
+            "export": None if exported is None else str(Path(args.output)),
+            "default_method": None if exported is None else exported["default_method"],
         }, indent=2, allow_nan=False))
         return 0
     parser.error(f"unknown command {args.command}")
