@@ -8,6 +8,7 @@ import { join, resolve, dirname, basename } from 'node:path';
 
 const origin = 'http://127.0.0.1:4173';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const fixturePredictions = JSON.parse(await readFile(new URL('../public/data/predictions.json', import.meta.url), 'utf8'));
 const profile = await mkdtemp(join(tmpdir(), 'alter-ego-a02-'));
 const browser = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', [
   '--headless', '--disable-gpu', '--no-first-run', '--remote-debugging-port=0',
@@ -57,6 +58,14 @@ try {
           if (scenario === 'missing') { body = ''; responseCode = 404; }
           if (scenario === 'empty') body = '';
           if (scenario === 'schema') { const value = JSON.parse(body); value.wells = []; body = JSON.stringify(value); }
+          if (scenario === 'null-summary' || scenario === 'unavailable-method') {
+            const value = JSON.parse(body);
+            const well = value.wells[0];
+            well.summaries.gcn_lstm = { latest_depth_m: null, change_30d_m: null, priority: 'unknown', reason_codes: [] };
+            if (scenario === 'unavailable-method') well.predictions_m.gcn_lstm.fill(null);
+            else well.predictions_m.gcn_lstm[well.predictions_m.gcn_lstm.length - 1] = null;
+            body = JSON.stringify(value);
+          }
         }
         if (scenario === 'mixed' && name === 'metrics.json') {
           const value = JSON.parse(body); value.meta.run_id = 'wrong-run'; body = JSON.stringify(value);
@@ -90,6 +99,64 @@ try {
   for (const expected of ['Dataset: synthetic', 'artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', '60 series dates loaded', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
   assert.ok(!valid.includes('Retry loading'));
   console.log('PASS browser: real production batch, type/dates/counts and fixture warning');
+  async function chooseMethod(method) {
+    await evaluate(`(() => { const select = document.getElementById('reconstruction-method'); select.value = ${JSON.stringify(method)}; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    await waitText(`Selected method: ${method}.`);
+  }
+  async function readDetails() {
+    return evaluate(`Object.fromEntries([...document.querySelectorAll('[data-field]')].map(node => [node.dataset.field, node.textContent]))`);
+  }
+  for (const well of fixturePredictions.wells) {
+    await evaluate(`(() => { [...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(well.id)}).click(); })()`);
+    await waitText(`Selected well: ${well.id}.`);
+    for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
+      await chooseMethod(method);
+      const details = await readDetails();
+      const summary = well.summaries[method];
+      assert.deepEqual(details, {
+        'well-id': well.id, role: well.role, latitude: String(well.latitude), longitude: String(well.longitude),
+        method, status: 'not_run', latest: `${summary.latest_depth_m} m`, change: `${summary.change_30d_m} m`,
+        priority: summary.priority, reasons: summary.reason_codes.join(', '),
+      });
+      assert.equal(await evaluate('document.querySelectorAll(".well-list button[aria-pressed=true]").length'), 1);
+    }
+  }
+  console.log('PASS browser: all 18 well/method combinations show their own exported fields, with one selected well');
+  // Real keyboard activation of a well button, preserving the chosen method.
+  await send('Page.bringToFront');
+  await evaluate('document.querySelector(".well-list button").focus()');
+  assert.equal(await evaluate('document.activeElement === document.querySelector(".well-list button")'), true);
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', unmodifiedText: '\r', windowsVirtualKeyCode: 13 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+  assert.equal((await readDetails()).method, 'gcn_lstm_physics');
+  assert.equal(await evaluate('document.querySelector("label[for=reconstruction-method]").textContent'), 'Reconstruction method');
+  console.log('PASS browser: keyboard well selection and labelled method control');
+  await evaluate(`(() => { const select = document.getElementById('reconstruction-method'); select.add(new Option('invalid', 'invalid')); select.value = 'invalid'; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+  await waitText('Invalid selection.');
+  assert.deepEqual(await readDetails(), {});
+  await chooseMethod('idw');
+  assert.equal((await readDetails()).method, 'idw');
+  console.log('PASS browser: invalid method clears details and valid selection recovers');
+  for (const mode of ['null-summary', 'unavailable-method']) {
+    await navigate(mode);
+    await waitText('6 wells loaded');
+    await chooseMethod('gcn_lstm');
+    const details = await readDetails();
+    assert.equal(details.latest, 'Unknown');
+    assert.equal(details.change, 'Unknown');
+    assert.equal(details.priority, 'unknown');
+    assert.equal(details.reasons, 'Unknown');
+    const body = await evaluate('document.body.innerText');
+    assert.equal(body.includes('Method unavailable for this well.'), mode === 'unavailable-method');
+    await evaluate('document.querySelectorAll(".well-list button")[1].click()');
+    await waitText(`Selected well: ${fixturePredictions.wells[1].id}.`);
+    assert.equal((await readDetails()).latest, `${fixturePredictions.wells[1].summaries.gcn_lstm.latest_depth_m} m`);
+    await evaluate('document.querySelector(".well-list button").click()');
+    await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+    assert.equal((await readDetails()).latest, 'Unknown');
+    console.log(`PASS browser: ${mode} and repeated switching never substitute or retain another well's values`);
+  }
   for (const [mode, text] of [['malformed', 'not valid JSON'], ['missing', 'HTTP 404'], ['empty', 'is empty'], ['schema', 'must NOT have fewer than 1 items'], ['mixed', 'metadata mismatch at run_id']]) {
     await navigate(mode);
     const body = await waitText(text);

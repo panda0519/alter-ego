@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BatchError, loadBatch } from './data/loadBatch';
 import type { Batch } from './data/models';
+import WellWorkspace from './WellWorkspace';
 
 type LoadState = { kind: 'loading' } | { kind: 'ready'; batch: Batch } | { kind: 'missing' | 'invalid'; message: string };
 
@@ -66,11 +67,11 @@ export default function App() {
         </aside>}
 
         <div className="workspace-grid">
-          <section className="panel" aria-labelledby="wells-title">
+          {batch ? <WellWorkspace batch={batch} /> : <section className="panel" aria-labelledby="wells-title">
             <p className="eyebrow">01 / Wells</p>
             <h2 id="wells-title">Well list</h2>
-            <p className="empty-state">{batch ? `${batch.predictions.wells.length} wells loaded. Well selection is not yet available.` : 'Awaiting a validated dataset.'}</p>
-          </section>
+            <p className="empty-state">Awaiting a validated dataset.</p>
+          </section>}
 
           <section className="panel" aria-labelledby="map-title">
             <p className="eyebrow">02 / Region</p>

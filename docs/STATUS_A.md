@@ -1,5 +1,77 @@
 # Person A status
 
+## A03 handoff - 2026-10-24 IST
+
+Phase: A03 implemented and acceptance checks PASS on feature/person-a.
+Earlier entries are historical. User confirms A02 synchronized with GitHub.
+Read AGENTS.md, README_FIRST.md, MASTER_PLAN.md, COMMON_DECISIONS.md,
+this status, prompts/A03.md, relevant schemas/fixtures, contracts/README.md,
+ml/configs/prototype.yaml and the existing frontend/checks. Read A04 only
+to preserve the phase boundary. No B-owned files or shared contracts changed.
+
+Changed files:
+- frontend/src/WellWorkspace.tsx: selectable well list, native labelled method
+  selector and detail panel. One {wellId, method} state drives pressed state,
+  selected metadata, evaluation role, method/status and exported summary.
+  Selection preserves the method when changing wells. Initial selection uses
+  export order/default method, with no hardcoded well identity.
+- frontend/src/data/selection.ts: pure selection resolution, availability and
+  nullable depth formatting. Details derive directly each render, with no
+  cached summary or selection-sync effects. Invalid selections clear details.
+  Unavailable methods stay inspectable and show Unknown without substitution.
+  Fixture series remain inspectable despite not_run evaluation, explicitly
+  labelled illustrative. Nonfixture failed/not_run or all-null series are
+  unavailable. Partial series retain exported null/unknown summaries.
+- frontend/src/App.tsx: mounts selection UI only for the fully validated batch;
+  loading/error unmount it, preserving A02's complete-batch boundary.
+- frontend/src/styles.css: responsive list/details grid, pressed-button styles,
+  native select styling; existing focus and skip-link styles retained.
+- frontend/checks/selection.test.mjs: 25 selection/edge-case checks.
+- frontend/checks/browser.mjs: interaction checks plus existing A02 regressions;
+  null/unavailable responses are intercepted in memory only, never published.
+- docs/STATUS_A.md: evidence and handoff.
+
+Actual checks (Node v24.22.1; frontend commands run from frontend/):
+- `node --test checks/batch.test.mjs checks/selection.test.mjs`: PASS, 52 tests,
+  0 failures (27 A02 regressions + 25 A03). Covers every well/method pair,
+  invalid IDs/methods, empty well data, null/zero/negative values, partial/all-null
+  series and nonfixture failed/not_run availability. Source batch not mutated.
+- `npm run build`: PASS TypeScript and Vite; 95 modules; 2.80 kB CSS and
+  370.59 kB JS (111.68 kB gzip JS), plus dist/index.html.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from repository root: PASS. An unrelated initial Python version command was
+  mistakenly run from frontend/ and could not find the root venv; corrected
+  root validator command above succeeded. No environment changes were made.
+- `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`: started.
+- `node checks/browser.mjs`: final run PASS against production preview using
+  installed headless Edge outside the sandbox. All 18 well/method combinations
+  match exported metadata/summary fields, with exactly one pressed well.
+  Keyboard Enter activates a well and preserves method; select has a label.
+  Invalid-method injection clears details, valid selection recovers. Null and
+  unavailable method responses show Unknown, and repeated switching updates
+  values without stale data. A02 invalid/missing/empty/mixed-batch, retry and
+  loading regressions pass. No horizontal overflow at 390px/1280px; no uncaught
+  browser exceptions. Initial keyboard test omitted Enter's character in its
+  CDP event; corrected the test event, then the complete run passed. No app
+  change was needed for keyboard activation.
+- React/accessibility source review: single selection source of truth, derived
+  details, button aria-pressed, native select/label, polite selected-status text,
+  semantic detail list, no unsafe HTML or scientific flag recalculation.
+- Git review: manifest/lock, public fixture files, loader, contracts and B's
+  areas unchanged; generated dist/node_modules ignored. No secrets or generated
+  build output staged. `git diff --check` and staged check PASS before commit.
+
+Remaining issues: no known A03 blocker. Full visual/screen-reader certification
+and a real Person B export remain PENDING. Previous account/shared sign-offs
+remain PENDING unless verified independently. Fixture results demonstrate UI
+behavior only; no model training or real-world accuracy is claimed.
+
+A04 is ready when authorized. Map/chart/outage/reveal/agent features have not
+been implemented. Handoff: contract 1.0.0; fixture-layout-v1;
+synthetic-layout-six-wells, artifact_kind=fixture, all metric statuses not_run.
+To run: `cd frontend` then `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+Commit: this A03 commit; final SHA reported after creation. No push/merge/deploy.
+
 ## A02 handoff - 2026-10-24 IST
 
 Phase: A02 implemented and acceptance checks PASS on feature/person-a.
