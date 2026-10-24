@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "fixture-layout-v1",
+    "dataset_id": "synthetic-layout-six-wells",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "fixture",
+    "generated_at_utc": "2026-10-21T12:00:00Z",
+    "as_of_date": "2024-09-29",
+    "default_method": "idw",
+    "depth_unit": "m_below_ground",
+    "caption": "Illustrative synthetic UI fixture. No model has been trained and no accuracy is claimed."
+  },
+  "limitations": [
+    "Synthetic UI fixture; no trained model or measured accuracy.",
+    "Historical presentation; no live sensor stream.",
+    "Prototype inspection thresholds are not official warnings."
+  ],
+  "wells": [
+    {
+      "id": "SYN-001",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 8.618,
+      "change_30d_m": -0.652,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    },
+    {
+      "id": "SYN-002",
+      "role": "visible",
+      "method": "idw",
+      "latest_depth_m": 10.092,
+      "change_30d_m": -0.324,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    },
+    {
+      "id": "SYN-003",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 11.566,
+      "change_30d_m": -0.028,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    },
+    {
+      "id": "SYN-004",
+      "role": "train_masked",
+      "method": "idw",
+      "latest_depth_m": 13.072,
+      "change_30d_m": 0.294,
+      "priority": "watch",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    },
+    {
+      "id": "SYN-005",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 14.611,
+      "change_30d_m": 0.677,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    },
+    {
+      "id": "SYN-006",
+      "role": "holdout",
+      "method": "idw",
+      "latest_depth_m": 16.154,
+      "change_30d_m": 1.099,
+      "priority": "high",
+      "reason_codes": [
+        "prototype_change_rule",
+        "illustrative_fixture"
+      ]
+    }
+  ]
+}

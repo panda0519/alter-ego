@@ -19,6 +19,10 @@ h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; }
 .badges li { padding: 5px 12px; border: 1px solid #bfd3ce; border-radius: 6px; background: #e7f0ec; font-size: 0.8rem; }
 .notice { padding: 18px 22px; border-left: 4px solid #3b7977; background: #e7eeeb; margin-bottom: 24px; }
 .notice p { margin: 4px 0 0; }
+.metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; margin-bottom: 0; }
+.metadata dt { font-size: 0.8rem; font-weight: 700; }
+.metadata dd { margin: 0; overflow-wrap: anywhere; }
+button { margin-top: 12px; padding: 8px 16px; border: 1px solid #193b40; border-radius: 6px; background: #193b40; color: white; font: inherit; cursor: pointer; }
 .workspace-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
 .panel { min-width: 0; padding: 24px; border: 1px solid #ccd9d4; border-radius: 10px; background: #fff; }
 .empty-state { display: flex; align-items: center; min-height: 120px; margin: 20px 0 0; padding: 20px; border: 1px dashed #c2d2ce; border-radius: 6px; color: #52686c; background: #f8faf9; }

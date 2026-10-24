@@ -1,5 +1,79 @@
 # Person A status
 
+## A02 handoff - 2026-10-24 IST
+
+Phase: A02 implemented and acceptance checks PASS on feature/person-a.
+Earlier A01/A00 entries below are historical. User confirms A01 was pushed and
+the desktop screenshot reviewed. No push, merge or deployment performed here.
+
+Read AGENTS.md, MASTER_PLAN.md, README_FIRST.md, docs/COMMON_DECISIONS.md,
+this status, prompts/A02.md, all four contract schemas and fixtures,
+contracts/README.md and ml/configs/prototype.yaml. A03 was inspected only to
+preserve its boundary. No contracts or B-owned files were modified.
+
+Changed files:
+- frontend/public/data/{predictions,metrics,run_info,agent_context}.json:
+  complete, byte-identical copy of contracts/fixtures, published together.
+- frontend/src/data/models.ts: typed metadata, wells, summaries, metrics,
+  run evidence and agent context for contract 1.0.0.
+- frontend/src/data/loadBatch.ts: one four-file no-store loader; existing
+  schemas imported directly with Ajv and date formats; no schema copies/drift.
+  Validates every metadata field, ordered unique dates, final as-of date,
+  unique well IDs, all observation/method series lengths, agent IDs/roles/
+  summaries and metric status. No scientific flags or results recalculated.
+- frontend/src/App.tsx and styles.css: loading, missing/empty and invalid
+  states, helpful file/path errors and Retry; only fully validated batches
+  become visible. Aborted/stale requests cannot publish state after cleanup.
+  Loaded dataset/artifact type, caption, run/schema/dataset IDs, observation
+  range, as-of date, generated UTC timestamp, well/date counts and units shown.
+  Fixture and synthetic caveats are explicit; no hardcoded scientific results.
+- frontend/tsconfig.json: permits explicit TS import extensions for Node checks.
+- frontend/checks/batch.test.mjs: repeatable Node loader/contract acceptance tests.
+- frontend/checks/browser.mjs: installed Windows Edge checks using native CDP;
+  test response interception only, no application test routes or altered fixtures.
+- docs/STATUS_A.md: this evidence/handoff.
+
+Actual checks (Node v24.22.1; frontend commands from frontend/):
+- `node --test checks/batch.test.mjs`: 27 tests PASS, 0 failures. Includes exact
+  four-file copy, actual fixture dates 2024-08-01 through 2024-09-29, 6 wells,
+  60 dates, null preservation, not_run metrics, schema/date errors, empty
+  wells/dates, batch identity mismatches, misaligned series, duplicate IDs/dates,
+  agent mismatch/truth-field rejection, Infinity, false metric values, fetch
+  failures, 404, empty bodies, malformed JSON and abort behavior. An in-memory
+  model_output/different-identity compatibility case passes; never published.
+- `npm run build`: PASS; TypeScript and Vite, 93 modules; output includes
+  dist/index.html, 1.98 kB CSS and 365.87 kB JS (110.44 kB gzip JS).
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  (from root): PASS schemas, metadata, dates, series, summaries, metric status.
+  This is export consistency evidence, not scientific validation.
+- `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`: started.
+- `node checks/browser.mjs`: PASS production-browser rendering and metadata,
+  malformed JSON, 404, empty body, empty-wells schema failure, mixed run ID,
+  no partial/stale display on failure, successful retry, delayed loading state,
+  390px/1280px no-horizontal-overflow checks and zero uncaught runtime exceptions.
+  Initial sandboxed Edge runtime initialization timed out; approved execution
+  outside the sandbox passed. Final run includes all cases and layout checks.
+- React review: one load-state union, cleanup abort, no separate derived-state
+  effect, escaped data strings, alert/status semantics and keyboard Retry.
+- Git diff/staged review: only frontend sources, public-safe fixture batch,
+  frontend acceptance checks and this note; no generated output or secrets.
+  Existing dependency manifest/lock and contracts unchanged.
+- `git diff --check` and `git diff --cached --check`: PASS before commit.
+
+Remaining issues: no known A02 blocker. Browser checks establish rendering and
+state behavior, not full visual/accessibility certification. Person B's actual
+model export integration remains PENDING receipt of a complete export batch;
+the loader uses the contract and does not depend on fixture IDs or counts.
+Earlier unverified external-account/shared sign-offs remain PENDING.
+
+A03 is ready when authorized; no selectable list/details/method controls, map,
+chart, outage/reveal or agent integration implemented in A02. The shell areas
+remain placeholders with accurate loaded-state text.
+
+Handoff: contract 1.0.0; fixture-layout-v1; synthetic-layout-six-wells;
+artifact_kind=fixture, dataset_kind=synthetic; all metric statuses not_run.
+Commit: this A02 commit, SHA reported after creation. Do not push/merge/deploy.
+
 ## A01 handoff — 2026-10-24 IST
 
 Phase: A01 implemented and acceptance checks PASS on feature/person-a.

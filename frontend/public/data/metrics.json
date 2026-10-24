@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "fixture-layout-v1",
+    "dataset_id": "synthetic-layout-six-wells",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "fixture",
+    "generated_at_utc": "2026-10-21T12:00:00Z",
+    "as_of_date": "2024-09-29",
+    "default_method": "idw",
+    "depth_unit": "m_below_ground",
+    "caption": "Illustrative synthetic UI fixture. No model has been trained and no accuracy is claimed."
+  },
+  "evaluation": {
+    "test_group": "holdout",
+    "same_common_mask": true,
+    "split_seed": 42,
+    "notes": "No experiment has run. All metric values are null; UI fixture only."
+  },
+  "methods": {
+    "idw": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    },
+    "gcn_lstm": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    },
+    "gcn_lstm_physics": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    }
+  }
+}
