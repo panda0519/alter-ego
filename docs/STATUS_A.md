@@ -1,5 +1,69 @@
 # Person A status
 
+## A01 handoff — 2026-10-24 IST
+
+Phase: A01 implemented and acceptance checks PASS on feature/person-a.
+The A00 record below is historical; its A01-not-started statements are superseded
+by this entry. User reports the A00 commit has been pushed. Person B is working
+independently on Ubuntu with Cursor; no B-owned files were edited.
+
+Read all requested inputs: AGENTS.md, README_FIRST.md, MASTER_PLAN.md,
+docs/COMMON_DECISIONS.md, this status, prompts/A01.md, frontend/package.json,
+contracts/README.md, plus ml/configs/prototype.yaml. A01 is authoritative.
+
+Changed files:
+- frontend/index.html: HTML entry, page title, description and viewport.
+- frontend/src/main.tsx: React root and StrictMode entry.
+- frontend/src/App.tsx: historical prototype and planned synthetic fixture
+  badges; explicit unloaded state; well-list, map, chart and results areas.
+- frontend/src/styles.css: plain CSS, responsive grid, skip link and focus styles.
+- frontend/tsconfig.json: strict TypeScript checking without emitted files.
+- frontend/vite.config.ts: Vite with the installed React plugin.
+- docs/STATUS_A.md: actual evidence and handoff.
+
+No manifest/lock changes, data publishing/loading, JSON contract changes,
+scientific calculations, model outputs, router, backend or later-phase features.
+
+Checks actually run (frontend commands run from frontend/):
+- `node --version`: v24.22.1.
+- `npm ci`: exit 0, added 71 packages in 17s. No audit result was printed;
+  no new zero-vulnerability claim is made.
+- `npm run build`: exit 0; `tsc --noEmit` and Vite production build passed,
+  16 modules transformed. Output: dist/index.html and bundled CSS/JS.
+- `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`: Vite ready
+  in 419 ms at the exact required address. PowerShell Invoke-WebRequest
+  confirmed HTTP 200 for /, /src/main.tsx and /src/App.tsx.
+- Installed Edge headless `--dump-dom --timeout=10000` against the dev URL:
+  captured rendered React DOM with Alter Ego, historical/fixture badges and all
+  four section headings. Initial sandboxed Edge crashed with GPU/access errors;
+  approved isolated-profile execution produced the rendered DOM in a temporary
+  file outside the repository. No interactive visual or console audit claimed.
+- `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`: started;
+  Invoke-WebRequest confirmed HTTP 200 from production preview.
+- React source review: semantic landmarks, associated section headings, keyboard
+  skip link and focus styling; no effects, state, external data requests or
+  unused map/chart imports. Mobile layout uses one column at <=700px.
+- `git diff -- frontend/package-lock.json frontend/package.json`: no changes.
+- `git check-ignore frontend/dist/index.html frontend/node_modules/react/package.json`:
+  both generated paths ignored. Staged paths/content reviewed before commit;
+  source/config/status only, no generated files, environment files or secrets.
+- `git diff --check` and `git diff --cached --check`: PASS before commit.
+
+Remaining issues: no known A01 blocker. Interactive visual/mobile review remains
+PENDING; server/DOM verification above passed. A00 teammate and external-account
+items remain PENDING unless separately verified; they do not block the shell.
+
+A02 is ready when authorized: copy/validate the four-file fixture batch and
+implement its loader/types/errors. A02 was read only to establish the boundary;
+no A02 implementation performed. Handoff: contract 1.0.0, fixture-layout-v1,
+synthetic-layout-six-wells (not yet loaded/published by this shell).
+
+To run locally: `cd frontend`, then
+`npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+Commit: this A01 commit; final SHA reported after creation. No push/merge/deploy.
+
+## Historical A00 record
+
 Phase: A00 technical readiness verified; shared/account acceptance PENDING
 Checked: 2026-10-24 (IST). Person A, Windows, VS Code/Codex.
 Changed files: docs/STATUS_A.md only. No A01 implementation started.
