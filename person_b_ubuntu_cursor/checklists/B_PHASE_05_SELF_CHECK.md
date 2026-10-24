@@ -11,4 +11,4 @@ Filled 24 October 2026 from this checkout on `feature/model`. Parent `57dc6f9a7f
 | Final handoff | Supply real SHA/path/hashes/cohort scope/evidence/limits | A receives one complete accepted candidate | Candidate `artifacts/exports/b12-final-syn40-seed42-r2`, produced from clean `9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b`. Digests, training dirty revisions, cohort, and the schema gap are in `ml/STATUS_B.md`. Displayed wells 40. Evaluated test wells 8. The earlier `b12-final-syn40-seed42` folder is preserved. Not pushed. A publishes `frontend/public/data` | PASS |
 | Release support | Perform joint demo/Q&A and three rehearsals | Actual participation and factual results recorded | No rehearsal occurred. No deck, recording or receipt. Factual GCN, LSTM, storage and holdout notes are in `ml/STATUS_B.md` for when a rehearsal happens | PENDING |
 
-Detail record: `ml/B_PHASE_5_SELF_CHECK.md`. Handoff commit `d622419a07177ad35bc49c5e2a5f733a20751aae`.
+Detail record: `ml/B_PHASE_5_SELF_CHECK.md`. Candidate commit `89d85dae75267e3c0ba99abf607f42771fa0c371`.

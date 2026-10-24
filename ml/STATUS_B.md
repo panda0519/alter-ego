@@ -6,7 +6,7 @@ Dataset: private `data/processed/active`, `dataset_id` `05902f5167e6a8aefa02386b
 
 ## Handoff for A
 
-Branch: `feature/model`. The candidate files are introduced by the commit recorded at the end of this note.
+Branch: `feature/model`. Commit containing this candidate: `89d85dae75267e3c0ba99abf607f42771fa0c371`.
 
 Run ID: `b12-final-syn40-seed42-r2`
 
@@ -62,6 +62,6 @@ The physics term is an assumed local storage penalty, not a flow model. With dep
 
 `ml/B_PHASE_5_SELF_CHECK.md`. `.venv/bin/python -m pytest tests -q --tb=line`: 61 passed in 27.06s. pip check: `No broken requirements found.` Repeat evaluate and repeat export both exited 1 by refusing an existing folder. `b05-idw-syn40-seed42` and `b09-gcn-lstm-lambda0-syn40-seed42` were not edited.
 
-Git: `feature/model`. Export process revision `9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b`. The commit that contains `b12-final-syn40-seed42-r2` is recorded in the follow-up status commit. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted. Tracked files contain no checkpoint, `bundle.npz`, processed bundle, cache, or credential. `frontend/.env.example` has an empty `VITE_AGENT37_URL`. `runs/` and `data/processed/` stay gitignored.
+Git: `feature/model` candidate `89d85dae75267e3c0ba99abf607f42771fa0c371`. Export process revision `9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b`. Remote `https://github.com/panda0519/alter-ego`. Push was not attempted. Tracked files contain no checkpoint, `bundle.npz`, processed bundle, cache, or credential. `frontend/.env.example` has an empty `VITE_AGENT37_URL`. `runs/` and `data/processed/` stay gitignored.
 
 Next: stop. A alone publishes `frontend/public/data` and validates before acceptance. Nodus login and the three rehearsals remain operator steps.
