@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import WellMap from './WellMap';
 import { methods } from './data/models';
 import type { Batch, Role } from './data/models';
 import { depthLabel, initialSelection, methodAvailable, resolveSelection } from './data/selection';
@@ -11,9 +12,11 @@ const roleDescriptions: Record<Role, string> = {
 
 export default function WellWorkspace({ batch }: { batch: Batch }) {
   const [selection, setSelection] = useState(() => initialSelection(batch));
+  const selectWell = useCallback((wellId: string) => setSelection(current => ({ ...current, wellId })), []);
   const { well, method, available, summary } = resolveSelection(batch, selection);
   const fixture = batch.predictions.meta.artifact_kind === 'fixture';
   return (
+    <>
     <section className="panel selection-panel" aria-labelledby="wells-title">
       <p className="eyebrow">01 / Wells</p>
       <h2 id="wells-title">Well list and details</h2>
@@ -23,7 +26,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
           <ul className="well-list">
             {batch.predictions.wells.map(item => <li key={item.id}>
               <button type="button" aria-pressed={item.id === well?.id}
-                onClick={() => setSelection(current => ({ ...current, wellId: item.id }))}>
+                onClick={() => selectWell(item.id)}>
                 <span>{item.id}</span><span className="well-role">{item.role}</span>
               </button>
             </li>)}
@@ -63,5 +66,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
         </div>
       </div>
     </section>
+    <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} />
+    </>
   );
 }

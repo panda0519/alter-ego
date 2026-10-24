@@ -2,11 +2,11 @@
 // Run against the production preview: node checks/browser.mjs
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 
-const origin = 'http://127.0.0.1:4173';
+const origin = process.env.ALTER_EGO_CHECK_ORIGIN || 'http://127.0.0.1:4173';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const fixturePredictions = JSON.parse(await readFile(new URL('../public/data/predictions.json', import.meta.url), 'utf8'));
 const profile = await mkdtemp(join(tmpdir(), 'alter-ego-a02-'));
@@ -30,6 +30,16 @@ try {
   const exceptions = [];
   let scenario = 'valid';
   let held = [];
+  let tileMode = 'success';
+  let heldTiles = [];
+  let tileRequests = 0;
+  let canceledInterceptions = 0;
+  const interceptionError = error => {
+    // StrictMode/refresh removes tiles while CDP is responding. The browser
+    // invalidates those request IDs; this is not a page Runtime exception.
+    if (error.message === 'Invalid InterceptionId.') canceledInterceptions++;
+    else exceptions.push(error.message);
+  };
   send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++next;
     const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 10000);
@@ -47,6 +57,16 @@ try {
     if (message.method === 'Runtime.exceptionThrown') exceptions.push(message.params.exceptionDetails.text);
     if (message.method === 'Fetch.requestPaused') {
       const { requestId, request } = message.params;
+      if (new URL(request.url).hostname === 'tile.openstreetmap.org') {
+        tileRequests++;
+        const result = tileMode === 'failure'
+          ? send('Fetch.failRequest', { requestId, errorReason: 'InternetDisconnected' })
+          : tileMode === 'delayed'
+            ? (heldTiles.push(requestId), Promise.resolve())
+            : send('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'image/svg+xml' }], body: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e7eeeb"/></svg>').toString('base64') });
+        void result.catch(interceptionError);
+        return;
+      }
       if (scenario === 'loading') { held.push(requestId); return; }
       const name = new URL(request.url).pathname.split('/').at(-1);
       void (async () => {
@@ -54,6 +74,8 @@ try {
         let body = await readFile(new URL(`../public/data/${name}`, import.meta.url), 'utf8');
         let responseCode = 200;
         if (name === 'predictions.json') {
+          if (scenario === 'invalid-coordinates') { const value = JSON.parse(body); value.wells[0].latitude = 91; body = JSON.stringify(value); }
+          if (scenario === 'duplicate-coordinates') { const value = JSON.parse(body); value.wells.forEach(well => { well.latitude = 26; well.longitude = 91; }); body = JSON.stringify(value); }
           if (scenario === 'malformed') body = '{';
           if (scenario === 'missing') { body = ''; responseCode = 404; }
           if (scenario === 'empty') body = '';
@@ -71,12 +93,12 @@ try {
           const value = JSON.parse(body); value.meta.run_id = 'wrong-run'; body = JSON.stringify(value);
         }
         return send('Fetch.fulfillRequest', { requestId, responseCode, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(body).toString('base64') });
-      })().catch(error => exceptions.push(error.message));
+      })().catch(interceptionError);
     }
   };
   await send('Runtime.enable');
   await send('Page.enable');
-  await send('Fetch.enable', { patterns: [{ urlPattern: '*/data/*.json' }] });
+  await send('Fetch.enable', { patterns: [{ urlPattern: '*/data/*.json' }, { urlPattern: 'https://tile.openstreetmap.org/*' }] });
   async function evaluate(expression) {
     const value = await send('Runtime.evaluate', { expression, returnByValue: true });
     assert.ok(!value.exceptionDetails, JSON.stringify(value.exceptionDetails));
@@ -98,7 +120,7 @@ try {
   const valid = await waitText('6 wells loaded');
   for (const expected of ['Dataset: synthetic', 'artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', '60 series dates loaded', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
   assert.ok(!valid.includes('Retry loading'));
-  console.log('PASS browser: real production batch, type/dates/counts and fixture warning');
+  console.log('PASS browser: published batch, type/dates/counts and fixture warning');
   async function chooseMethod(method) {
     await evaluate(`(() => { const select = document.getElementById('reconstruction-method'); select.value = ${JSON.stringify(method)}; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
     await waitText(`Selected method: ${method}.`);
@@ -132,6 +154,27 @@ try {
   assert.equal((await readDetails()).method, 'gcn_lstm_physics');
   assert.equal(await evaluate('document.querySelector("label[for=reconstruction-method]").textContent'), 'Reconstruction method');
   console.log('PASS browser: keyboard well selection and labelled method control');
+  await waitText('Map tiles loaded.');
+  assert.equal(await evaluate('document.querySelectorAll(".leaflet-container").length'), 1);
+  assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), fixturePredictions.wells.length);
+  assert.ok(await evaluate('!!document.querySelector(".leaflet-control-attribution a[href=\\"https://www.openstreetmap.org/copyright\\"]")'));
+  const mapBefore = await evaluate('document.querySelector(".well-map")._leaflet_id');
+  for (const well of fixturePredictions.wells) {
+    await evaluate(`document.querySelector('.well-map [data-well-id="${well.id}"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))`);
+    await waitText(`Selected well: ${well.id}.`);
+    assert.equal((await readDetails())['well-id'], well.id);
+    assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), well.id);
+  }
+  await evaluate('document.querySelector(".well-list button").click()');
+  await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+  assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), fixturePredictions.wells[0].id);
+  await evaluate(`document.querySelector('.well-map [data-well-id="${fixturePredictions.wells[1].id}"]').focus()`);
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
+  await waitText(`Selected well: ${fixturePredictions.wells[1].id}.`);
+  assert.equal((await readDetails()).method, 'gcn_lstm_physics');
+  assert.equal(await evaluate('document.querySelector(".well-map")._leaflet_id'), mapBefore);
+  console.log('PASS browser: all circle markers select wells; list/map/details sync; keyboard marker activation; map not recreated on selection');
   await evaluate(`(() => { const select = document.getElementById('reconstruction-method'); select.add(new Option('invalid', 'invalid')); select.value = 'invalid'; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
   await waitText('Invalid selection.');
   assert.deepEqual(await readDetails(), {});
@@ -157,7 +200,7 @@ try {
     assert.equal((await readDetails()).latest, 'Unknown');
     console.log(`PASS browser: ${mode} and repeated switching never substitute or retain another well's values`);
   }
-  for (const [mode, text] of [['malformed', 'not valid JSON'], ['missing', 'HTTP 404'], ['empty', 'is empty'], ['schema', 'must NOT have fewer than 1 items'], ['mixed', 'metadata mismatch at run_id']]) {
+  for (const [mode, text] of [['malformed', 'not valid JSON'], ['missing', 'HTTP 404'], ['empty', 'is empty'], ['schema', 'must NOT have fewer than 1 items'], ['mixed', 'metadata mismatch at run_id'], ['invalid-coordinates', 'must be <= 90']]) {
     await navigate(mode);
     const body = await waitText(text);
     assert.ok(body.includes('Retry loading') && body.includes('No partial batch is displayed.'));
@@ -175,6 +218,76 @@ try {
   held = [];
   await waitText('6 wells loaded');
   console.log('PASS browser: loading state and completion');
+  tileMode = 'failure';
+  await navigate('valid');
+  await waitText('Background map tiles are unavailable or incomplete.');
+  assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 6);
+  await evaluate('document.querySelectorAll(".well-list button")[2].click()');
+  await waitText(`Selected well: ${fixturePredictions.wells[2].id}.`);
+  await chooseMethod('gcn_lstm');
+  assert.equal((await readDetails()).method, 'gcn_lstm');
+  assert.ok((await evaluate('document.body.innerText')).includes('60 series dates loaded'));
+  tileMode = 'success';
+  await evaluate('[...document.querySelectorAll("button")].find(button => button.textContent === "Retry map tiles").click()');
+  await waitText('Map tiles loaded.');
+  assert.equal((await readDetails())['well-id'], fixturePredictions.wells[2].id);
+  console.log('PASS browser: tile failure retains markers/list/details/chart area; retry recovers without losing selection');
+  tileMode = 'delayed';
+  await navigate('valid');
+  await waitText('Background map tiles are unavailable or incomplete.');
+  assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 6);
+  tileMode = 'success';
+  for (const requestId of heldTiles) await send('Fetch.failRequest', { requestId, errorReason: 'Aborted' }).catch(() => {});
+  heldTiles = [];
+  await navigate('duplicate-coordinates');
+  await waitText('Map tiles loaded.');
+  assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 6);
+  console.log('PASS browser: stalled tile requests time out gracefully; coincident coordinates do not crash');
+  for (let i = 0; i < 2; i++) {
+    await navigate('valid'); await waitText('Map tiles loaded.');
+    assert.equal(await evaluate('document.querySelectorAll(".leaflet-container").length'), 1);
+    assert.equal(await evaluate('document.querySelectorAll(".leaflet-pane.leaflet-map-pane").length'), 1);
+  }
+  assert.ok(tileRequests > 0);
+  console.log('PASS browser: reloads retain one map; all tile requests intercepted locally');
+  const failureHook = await send('Page.addScriptToEvaluateOnNewDocument', {
+    source: 'window.ResizeObserver = class { constructor() { throw new Error("Simulated map observer initialization failure"); } };',
+  });
+  await navigate('valid');
+  await waitText('The map could not be initialized.');
+  await evaluate('document.querySelectorAll(".well-list button")[3].click()');
+  await waitText(`Selected well: ${fixturePredictions.wells[3].id}.`);
+  assert.equal(await evaluate('document.querySelectorAll(".leaflet-map-pane").length'), 0);
+  await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: failureHook.identifier });
+  await navigate('valid'); await waitText('Map tiles loaded.');
+  console.log('PASS browser: initialization failure cleans up map and preserves list/details; next mount recovers');
+  if (new URL(origin).port === '5173') {
+    const componentPath = new URL('../src/WellMap.tsx', import.meta.url);
+    const original = await readFile(componentPath, 'utf8');
+    let refreshedId;
+    async function waitNewMap(previous) {
+      for (let i = 0; i < 100; i++) {
+        const id = await evaluate('document.querySelector(".well-map")?._leaflet_id');
+        if (id && id !== previous) return;
+        await pause(100);
+      }
+      throw new Error('Development refresh did not recreate the map');
+    }
+    try {
+      const beforeRefresh = await evaluate('document.querySelector(".well-map")._leaflet_id');
+      await writeFile(componentPath, `${original}\n// Temporary A04 development refresh check.\n`);
+      await waitNewMap(beforeRefresh);
+      await waitText('Map tiles loaded.');
+      assert.equal(await evaluate('document.querySelectorAll(".leaflet-map-pane").length'), 1);
+      assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 6);
+      refreshedId = await evaluate('document.querySelector(".well-map")._leaflet_id');
+      console.log('PASS browser: StrictMode development mount and actual Fast Refresh leave one working map');
+    } finally {
+      await writeFile(componentPath, original);
+    }
+    await waitNewMap(refreshedId);
+    await waitText('Map tiles loaded.');
+  }
   for (const width of [390, 1280]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 700 });
     assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), `No horizontal overflow at ${width}px`);
@@ -182,6 +295,7 @@ try {
   console.log('PASS browser: 390px and 1280px layouts have no horizontal overflow');
   assert.deepEqual(exceptions, [], 'No uncaught browser runtime exceptions');
   console.log('PASS browser: no uncaught runtime exceptions');
+  console.log(`INFO browser: ${canceledInterceptions} canceled CDP interceptions during cleanup/refresh`);
 } finally {
   if (send && socket?.readyState === WebSocket.OPEN) await send('Browser.close').catch(() => {});
   socket?.close();

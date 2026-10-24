@@ -25,6 +25,11 @@ h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; }
 button { margin-top: 12px; padding: 8px 16px; border: 1px solid #193b40; border-radius: 6px; background: #193b40; color: white; font: inherit; cursor: pointer; }
 .workspace-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
 .selection-panel { grid-column: 1 / -1; }
+.map-panel { grid-column: 1 / -1; }
+.well-map { height: clamp(300px, 45vh, 460px); width: 100%; z-index: 0; background: #e7eeeb; border: 1px solid #b4c7c0; border-radius: 6px; }
+.well-map .leaflet-interactive:focus-visible { outline: none; stroke: #713209; stroke-width: 5; }
+.well-map .leaflet-control-attribution { color: #193b40; background: #fff; }
+.map-status { margin-bottom: 0; }
 .selection-grid { display: grid; grid-template-columns: minmax(160px, 1fr) 3fr; gap: 24px; }
 .selection-grid > * { min-width: 0; }
 .well-list { list-style: none; padding: 0; margin: 0; }

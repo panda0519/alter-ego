@@ -73,11 +73,11 @@ export default function App() {
             <p className="empty-state">Awaiting a validated dataset.</p>
           </section>}
 
-          <section className="panel" aria-labelledby="map-title">
+          {!batch && <section className="panel" aria-labelledby="map-title">
             <p className="eyebrow">02 / Region</p>
             <h2 id="map-title">Well map</h2>
-            <p className="empty-state">{batch ? 'Location metadata loaded. Map display is not yet available.' : 'Awaiting a validated dataset.'}</p>
-          </section>
+            <p className="empty-state">Awaiting a validated dataset.</p>
+          </section>}
 
           <section className="panel" aria-labelledby="chart-title">
             <p className="eyebrow">03 / History</p>

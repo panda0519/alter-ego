@@ -1,5 +1,91 @@
 # Person A status
 
+## A04 handoff - 2026-10-24 IST
+
+Phase: A04 implemented and acceptance checks PASS on feature/person-a.
+Read AGENTS.md, README_FIRST.md, MASTER_PLAN.md, this status, prompts/A04.md,
+contracts/README.md, relevant schema/fixture conventions and frontend source/
+checks, plus ml/configs/prototype.yaml. A05 read only to preserve its boundary.
+No shared contracts, B-owned files, dependencies or public fixtures changed.
+
+Changed files:
+- frontend/src/WellMap.tsx: direct Leaflet component and bundled Leaflet CSS;
+  circle markers, bounds fit with capped initial zoom, keyboard selection,
+  escaped tooltip text, selected-marker styling and visible OSM attribution.
+  Finite/range-checked coordinates only; no coordinates are invented. Duplicate
+  locations are permitted; the list keeps overlapping wells independently usable.
+  ResizeObserver invalidates map size for responsive layout. Cleanup removes
+  map, observer, marker keyboard listeners, tile events and timeout. A stable
+  callback prevents map recreation when well or method selection changes.
+  Tile failures or a 10-second loading timeout show an explicit background-map
+  fallback. Circles/list/details stay usable; Retry redraws tiles without losing
+  selection. Initialization errors clean up and leave list/details available.
+- frontend/src/data/coordinates.ts and checks/coordinates.test.mjs: defensive
+  coordinate guard and boundary/zero/missing/nonfinite/out-of-range coverage.
+- frontend/src/WellWorkspace.tsx: map shares the A03 well selection directly;
+  marker/list selection preserves method and updates the same detail panel.
+- frontend/src/App.tsx: map placeholder only while no validated batch exists.
+- frontend/src/styles.css: responsive full-width map, fixed bounded height,
+  visible attribution, selected/focused SVG circle styles.
+- frontend/checks/browser.mjs: A04 interaction/failure/refresh checks in addition
+  to A02/A03 regressions. All tile requests fulfilled/failed/held locally via
+  CDP; no automated public tile downloads. Optional ALTER_EGO_CHECK_ORIGIN
+  selects the dev server for actual Fast Refresh verification.
+- docs/STATUS_A.md: this evidence and handoff.
+
+Actual verification (frontend commands from frontend/; Node v24.22.1):
+- `npm run build`: PASS TypeScript and Vite, 99 modules. Output includes
+  18.21 kB CSS and 523.26 kB JS (156.24 kB gzip JS). Non-failing Vite warning:
+  the JS chunk exceeds 500 kB after adding Leaflet. No dependency upgrades or
+  chunk-limit suppression used. This remains a possible later optimization.
+- `node --test checks/batch.test.mjs checks/selection.test.mjs checks/coordinates.test.mjs`:
+  PASS 54 tests, 0 failures; includes all 52 existing regressions and 2 coordinate
+  tests covering ordinary/zero/boundary/duplicate and invalid coordinates.
+- `.\.venv\Scripts\python.exe scripts/validate_exports.py frontend/public/data`
+  from root: PASS existing schema/semantic checker. Not scientific validation.
+- Production preview: `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort`.
+  `node checks/browser.mjs`: final full run PASS. Checks all 18 well/method pairs,
+  all six selectable circle markers, list/map/detail synchronization, keyboard
+  marker activation, one selected marker, persistent method and map instance,
+  OSM attribution, null/unavailable methods, invalid/missing/empty/mixed-batch
+  states and retry. Invalid latitude remains rejected by the unchanged loader.
+  Tile-error and stalled-tile simulations show fallback; selection remains usable
+  and tile retry recovers. Coincident coordinates do not crash. Initialization
+  failure cleans up the map; list/details work and next mount recovers. Repeated
+  reloads leave one map pane. 390px/1280px layouts have no horizontal overflow.
+  No uncaught browser runtime exceptions.
+- Development server: `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+  `$env:ALTER_EGO_CHECK_ORIGIN='http://127.0.0.1:5173'; node checks/browser.mjs`:
+  final full run PASS, including React StrictMode and an actual temporary
+  WellMap source edit/restoration triggering Fast Refresh. One working map and
+  six markers remain after refresh. Source restored exactly by the check.
+  Initial dev check incorrectly counted canceled CDP interception IDs as page
+  exceptions during StrictMode cleanup; harness now distinguishes that specific
+  cancellation from real Runtime exceptions. Final dev run recorded 43 canceled
+  interceptions and zero uncaught page exceptions. Browser runs used approved
+  execution outside the sandbox, as in preceding phases.
+- React/source review: one well selection source, stable callback, lifecycle
+  cleanup, local CSS/assets, native list fallback, no injected data HTML,
+  no computed scientific flags/results and fixture warnings preserved.
+- Git review/checks: only A-owned frontend source/checks and this note;
+  generated output and secrets not staged. `git diff --check` and staged diff
+  check PASS before commit. No push, merge or deployment.
+
+OSM policy consulted: https://operations.osmfoundation.org/policies/tiles/ .
+Uses the prescribed HTTPS URL and visible attribution with normal browser
+caching/referrer behavior. No prefetch/offline tile download feature added.
+
+Remaining issues: no known A04 blocker. Live public-tile availability and full
+visual/screen-reader review remain PENDING; tests use locally intercepted tiles.
+The >500 kB chunk warning is non-blocking. The history chart is still the A01
+placeholder and remains present during tile failure; no A05 chart is claimed.
+Real B export and previously unverified account/shared items remain PENDING.
+
+A05 is ready when authorized; no chart, outage/reveal or agent implementation
+started. Handoff unchanged: schema 1.0.0; fixture-layout-v1;
+synthetic-layout-six-wells; artifact_kind=fixture; metrics not_run.
+Commit: this A04 commit; final SHA reported after creation.
+
 ## A03 handoff - 2026-10-24 IST
 
 Phase: A03 implemented and acceptance checks PASS on feature/person-a.
