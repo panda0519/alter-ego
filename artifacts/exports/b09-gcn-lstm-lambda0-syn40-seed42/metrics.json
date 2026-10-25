@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b09-gcn-lstm-lambda0-syn40-seed42",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T17:08:20Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm",
+    "depth_unit": "m_below_ground",
+    "caption": "Lambda 0 GCN-LSTM and IDW on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Physics was not run. Default method is the lower common-mask validation MAE. This is not field accuracy."
+  },
+  "evaluation": {
+    "test_group": "holdout",
+    "same_common_mask": true,
+    "split_seed": 42,
+    "notes": "Completed methods share well-dates with a finite IDW prediction, a finite lambda-0 GCN-LSTM prediction, and a valid label. Validation uses train_masked wells. Test uses holdout wells. Each date is one pair. gcn_lstm_physics was not run and is outside this mask. Unrestricted IDW validation MAE on train_masked labels is 1.0872565960824558 m over 959 pairs; the IDW metric in this file is the common mask, not that unrestricted score. Chart rows are the exported test dates and are not the pair count. Positive-lambda selection is later."
+  },
+  "methods": {
+    "idw": {
+      "status": "completed",
+      "validation_mae_m": 1.1042053369012759,
+      "validation_pairs": 713,
+      "test_mae_m": 1.4958895956006706,
+      "test_rmse_m": 2.034039534948381,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": null
+    },
+    "gcn_lstm": {
+      "status": "completed",
+      "validation_mae_m": 0.8598469860694834,
+      "validation_pairs": 713,
+      "test_mae_m": 1.626403108513909,
+      "test_rmse_m": 2.0547485083440558,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": 0.0
+    },
+    "gcn_lstm_physics": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    }
+  }
+}

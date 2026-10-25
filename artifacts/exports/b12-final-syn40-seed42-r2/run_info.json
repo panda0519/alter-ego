@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b12-final-syn40-seed42-r2",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T18:03:30Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm",
+    "depth_unit": "m_below_ground",
+    "caption": "Selected reconstruction on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Default method is gcn_lstm by common-mask validation MAE. The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. This is not field accuracy."
+  },
+  "code_revision": "9ea9652f89dd79f60b8ba7c0d7a39bf32704f43b",
+  "checkpoint_sha256": "721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a",
+  "python_version": "3.11.17",
+  "torch_version": "2.8.0+cu128",
+  "device": "cuda:NVIDIA GeForce RTX 5050 Laptop GPU",
+  "nodus_job_ids": [],
+  "selected_positive_lambda": null,
+  "physics_assumptions": [
+    "Positive-lambda training ran locally. Both selected checkpoints are the lambda-0 warmup, epoch 3.",
+    "Tie at validation MAE 0.8598469860694834 m kept lambda target 0.1 by the smaller-target rule, then withheld it from gcn_lstm_physics.",
+    "Metrics status is only not_run, completed, or failed. A positive-lambda run whose selected checkpoint is still the lambda-0 warmup is none of those. This export leaves gcn_lstm_physics as not_run instead of labelling those weights as a completed physics model.",
+    "Frozen q is 0.0 m/day from 32 permitted wells. Residual scale is 0.1533439339108233 m. Lateral flow is false.",
+    "Nodus was not used. No job id exists."
+  ],
+  "data_sources": [
+    "synthetic bundle 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "IDW uses previous-day visible depths only, power 2, at most 6 donors.",
+    "Fictional wells. NASA POWER weather forced the synthetic generator and is not a well gauge.",
+    "GCN-LSTM predictions come from runs/lambda0, scored once per ending window.",
+    "Lambda-0 checkpoint sha256 721a5416ed797f10b87ab5d3f439d31107b39681dcd7b480305a994a65916c6a.",
+    "Lambda 0.1 and lambda 1 checkpoint hashes are in the local evaluation record. Selected run runs/lambda01."
+  ]
+}

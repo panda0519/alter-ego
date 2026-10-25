@@ -1,0 +1,506 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b12-final-syn40-seed42-r2",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T18:03:30Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm",
+    "depth_unit": "m_below_ground",
+    "caption": "Selected reconstruction on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Default method is gcn_lstm by common-mask validation MAE. The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. This is not field accuracy."
+  },
+  "limitations": [
+    "Dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351 is synthetic. Synthetic results are not field accuracy.",
+    "Historical reconstruction only. This is not a live sensor feed or a forecast.",
+    "Default method is gcn_lstm by lower common-mask validation MAE. Holdout results were not used to change that choice.",
+    "The positive-lambda checkpoints match the lambda-0 warmup weights. They are not a physics-trained gain. gcn_lstm_physics is not_run for that reason.",
+    "Priority thresholds are prototype inspection labels, not official warnings.",
+    "The chart shows the exported test dates. Metric pairs are the common mask, not the chart length or the full cohort.",
+    "Displayed wells are the frozen cohort. Test metrics use holdout wells that have a scored pair.",
+    "Nodus login and credits were unavailable. No cloud job was run."
+  ],
+  "wells": [
+    {
+      "id": "SYN001",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 12.268768540376282,
+      "change_30d_m": 0.019806079886780736,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN002",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 12.186484938942964,
+      "change_30d_m": 0.018078424901377232,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN003",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 12.445474214440765,
+      "change_30d_m": -0.005286764525017418,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN004",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 13.235413714076248,
+      "change_30d_m": -0.13298969079785294,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN005",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 13.70057698717168,
+      "change_30d_m": -0.21995362414020647,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN006",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 13.95110098702382,
+      "change_30d_m": -0.3675065814685947,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN007",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 14.028978250004515,
+      "change_30d_m": -0.4917088439049717,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN008",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 14.627469731410502,
+      "change_30d_m": -0.5774225067653287,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN009",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 13.168708931711572,
+      "change_30d_m": -0.010053596074730109,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN010",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 12.858088254476813,
+      "change_30d_m": -0.05080474571146887,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN011",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 13.756750788958218,
+      "change_30d_m": -0.2583145783005225,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN012",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 14.083049409174178,
+      "change_30d_m": -0.2546018734529998,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN013",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 14.451609415996524,
+      "change_30d_m": -0.36302262712217903,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN014",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 15.332681897872153,
+      "change_30d_m": -0.7157581091397986,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN015",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 15.69124231244949,
+      "change_30d_m": -0.8363045928435326,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN016",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 16.300645840418216,
+      "change_30d_m": -0.7304632818376078,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN017",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 16.39929739480424,
+      "change_30d_m": -0.8432138100882653,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN018",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 16.55568979716992,
+      "change_30d_m": -0.9772882531367628,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN019",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 19.154492015137574,
+      "change_30d_m": -0.645989135449863,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN020",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 17.063422933293015,
+      "change_30d_m": -0.6264782648097409,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN021",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 18.11593121551632,
+      "change_30d_m": -0.6139753262069902,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN022",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 19.411416520834145,
+      "change_30d_m": -0.47198973122449317,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN023",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 20.00133027706159,
+      "change_30d_m": -0.42323175403767976,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN024",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 19.493216776302333,
+      "change_30d_m": -0.473804002741975,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN025",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 19.96363794174542,
+      "change_30d_m": -0.3804078859840807,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN026",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.05513085222746,
+      "change_30d_m": -0.2661261972020448,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN027",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.41904582834548,
+      "change_30d_m": -0.27476657617437183,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN028",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.267723123163286,
+      "change_30d_m": -0.2929401506804936,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN029",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.384978763104908,
+      "change_30d_m": -0.2451126290879806,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN030",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.89638661436847,
+      "change_30d_m": -0.1660073049924904,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN031",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 22.050678127488368,
+      "change_30d_m": -0.15266017665330267,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN032",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.46639386138927,
+      "change_30d_m": -0.2376764653835579,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN033",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.191488418224193,
+      "change_30d_m": -0.13373475662173462,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN034",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.977475118063577,
+      "change_30d_m": -0.09229277877364694,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN035",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 22.15292210546481,
+      "change_30d_m": -0.11469244518384158,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN036",
+      "role": "train_masked",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.95748247949231,
+      "change_30d_m": -0.21258245205769555,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN037",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.781078852821757,
+      "change_30d_m": -0.20086058183197508,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN038",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 22.244629492075607,
+      "change_30d_m": -0.13903437920144768,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN039",
+      "role": "visible",
+      "method": "gcn_lstm",
+      "latest_depth_m": 22.20275010658507,
+      "change_30d_m": -0.13286578590715337,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    },
+    {
+      "id": "SYN040",
+      "role": "holdout",
+      "method": "gcn_lstm",
+      "latest_depth_m": 21.8043061103887,
+      "change_30d_m": -0.19051241941331654,
+      "priority": "normal",
+      "reason_codes": [
+        "prototype_change_le_0_20_m",
+        "gcn_lstm_ending_window"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b05-idw-syn40-seed42",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T16:43:49Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "idw",
+    "depth_unit": "m_below_ground",
+    "caption": "IDW baseline on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Neural methods were not run. This is not field accuracy."
+  },
+  "evaluation": {
+    "test_group": "holdout",
+    "same_common_mask": true,
+    "split_seed": 42,
+    "notes": "IDW only. Each holdout test date and each train-masked validation date is scored once. Pairs require a finite IDW prediction and a valid label. Neural methods were not run, so they are not on this mask. Chart dates are the last exported test days and are not the metric count."
+  },
+  "methods": {
+    "idw": {
+      "status": "completed",
+      "validation_mae_m": 1.0872565960824558,
+      "validation_pairs": 959,
+      "test_mae_m": 1.5091486021717957,
+      "test_rmse_m": 2.038250204687411,
+      "test_pairs": 1319,
+      "test_wells": 8,
+      "lambda": null
+    },
+    "gcn_lstm": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    },
+    "gcn_lstm_physics": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    }
+  }
+}

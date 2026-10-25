@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b12-final-syn40-seed42",
+    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-24T17:51:02Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm",
+    "depth_unit": "m_below_ground",
+    "caption": "Selected reconstruction on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Default method is gcn_lstm by common-mask validation MAE. The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. This is not field accuracy."
+  },
+  "evaluation": {
+    "test_group": "holdout",
+    "same_common_mask": true,
+    "split_seed": 42,
+    "notes": "Completed methods share one holdout well-date only when every completed prediction and the label are finite. Each date is scored once from the window ending that day. Default gcn_lstm was locked from validation MAE before the holdout score. Validation pairs 713, wells 10. Test pairs 1109, contributing wells 8, holdout valid labels 1319, coverage 0.8407884761182715. Displayed wells 40. Chart dates 60 are not the pair count. Lambda 0.1 and lambda 1 both selected epoch 3 at lambda 0. Their weights match runs/lambda0. gcn_lstm_physics stays not_run because the schema cannot call that warmup checkpoint a completed physics model. q is 0.0 m/day after clipping the median -0.0002466964234525377; eligible wells 32. This is not field accuracy."
+  },
+  "methods": {
+    "idw": {
+      "status": "completed",
+      "validation_mae_m": 1.1042053369012759,
+      "validation_pairs": 713,
+      "test_mae_m": 1.4958895956006706,
+      "test_rmse_m": 2.034039534948381,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": null
+    },
+    "gcn_lstm": {
+      "status": "completed",
+      "validation_mae_m": 0.8598469860694834,
+      "validation_pairs": 713,
+      "test_mae_m": 1.626403108513909,
+      "test_rmse_m": 2.0547485083440558,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": 0.0
+    },
+    "gcn_lstm_physics": {
+      "status": "not_run",
+      "validation_mae_m": null,
+      "validation_pairs": 0,
+      "test_mae_m": null,
+      "test_rmse_m": null,
+      "test_pairs": 0,
+      "test_wells": 0,
+      "lambda": null
+    }
+  }
+}
