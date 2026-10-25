@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { BatchError, loadBatch } from './data/loadBatch';
 import type { Batch } from './data/models';
 import WellWorkspace from './WellWorkspace';
-import { provisionalReasons, reportedTrainingRevisions } from './data/provenance';
 
 type LoadState = { kind: 'loading' } | { kind: 'ready'; batch: Batch } | { kind: 'missing' | 'invalid'; message: string };
 
@@ -23,94 +22,21 @@ export default function App() {
     );
     return () => controller.abort();
   }, [attempt]);
-  const batch = state.kind === 'ready' ? state.batch : null;
-  const meta = batch?.predictions.meta;
-  const provisional = batch ? provisionalReasons(batch) : [];
-  const trainingRevisions = batch ? reportedTrainingRevisions(batch) : [];
-  return (
-    <>
-      <a className="skip-link" href="#workspace">Skip to workspace</a>
-      <header className="page-header">
-        <p className="eyebrow">Groundwater reconstruction</p>
-        <h1>Alter Ego</h1>
-        <p className="intro">A workspace for inspecting historical gaps in groundwater sensor readings.</p>
-        <ul className="badges" aria-label="Prototype and dataset status">
-          <li>Historical prototype</li>
-          {meta ? <>
-            <li>Dataset: {meta.dataset_kind}</li>
-            <li>artifact_kind={meta.artifact_kind}</li>
-            {provisional.length > 0 && <li>PROVISIONAL</li>}
-          </> : <li>No validated dataset loaded</li>}
-        </ul>
-      </header>
-
-      <main id="workspace" tabIndex={-1}>
-        {state.kind === 'loading' && <p className="notice" role="status">Loading the complete export batch...</p>}
-        {(state.kind === 'missing' || state.kind === 'invalid') && <aside className="notice" role="alert">
-          <strong>{state.kind === 'missing' ? 'Data unavailable' : 'Invalid export batch'}</strong>
-          <p>{state.message}</p>
-          <p>No partial batch is displayed.</p>
-          <button type="button" onClick={() => setAttempt(value => value + 1)}>Retry loading</button>
-        </aside>}
-        {batch && meta && <aside className="notice" aria-label="Dataset information">
-          <strong>{meta.artifact_kind === 'fixture' ? 'Illustrative fixture - not trained results' : `${meta.dataset_kind.toUpperCase()} / ${provisional.length ? 'PROVISIONAL' : 'CONTRACT-VALIDATED'} export batch`}</strong>
-          {provisional.length > 0 && <div className="provisional-notice">
-            <p>{provisional.join(' ')} Local integration checkpoint only; final scientific acceptance is pending.</p>
-            <p>Exported metrics have not been independently verified as model accuracy.</p>
-          </div>}
-          <p>{meta.caption}</p>
-          {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
-          {trainingRevisions.length > 0 && <div className="provisional-notice">
-            <p>Historical reconstruction only, not forecasting. Person B reports that IDW performed better on the holdout test; the default remains validation-selected.</p>
-            <p>Positive-lambda training ran, but validation selected warmup weights. A physics-trained model is not selected; the physics export remains not_run.</p>
-            <p>The exporter revision is clean; historical training revisions contain +dirty. Person A has not independently reproduced the training or checkpoints.</p>
-            <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
-          </div>}
-          <dl className="metadata">
-            <div><dt>Dataset ID</dt><dd>{meta.dataset_id}</dd></div>
-            <div><dt>Run ID</dt><dd>{meta.run_id}</dd></div>
-            <div><dt>Schema</dt><dd>{meta.schema_version}</dd></div>
-            <div><dt>Observation dates</dt><dd>{batch.predictions.dates[0]} to {batch.predictions.dates.at(-1)}</dd></div>
-            <div><dt>As of</dt><dd>{meta.as_of_date}</dd></div>
-            <div><dt>Generated (UTC)</dt><dd>{meta.generated_at_utc}</dd></div>
-            <div><dt>Wells</dt><dd>{batch.predictions.wells.length}</dd></div>
-            <div><dt>Series dates</dt><dd>{batch.predictions.dates.length}</dd></div>
-            <div><dt>Default method</dt><dd>{meta.default_method}</dd></div>
-            <div><dt>Depth unit</dt><dd>{meta.depth_unit}</dd></div>
-            <div><dt>Exporter code revision</dt><dd>{batch.run_info.code_revision ?? 'Unavailable'}</dd></div>
-            {trainingRevisions.length > 0 && <div><dt>Training source revisions (B reported)</dt><dd>{trainingRevisions.join('; ')}</dd></div>}
-            <div><dt>Physics evaluation status</dt><dd>{batch.metrics.methods.gcn_lstm_physics.status}</dd></div>
-          </dl>
-        </aside>}
-
-        <div className="workspace-grid">
-          {batch ? <WellWorkspace key={JSON.stringify(batch.predictions.meta)} batch={batch} /> : <section className="panel" aria-labelledby="wells-title">
-            <p className="eyebrow">01 / Wells</p>
-            <h2 id="wells-title">Well list</h2>
-            <p className="empty-state">Awaiting a validated dataset.</p>
-          </section>}
-
-          {!batch && <section className="panel" aria-labelledby="map-title">
-            <p className="eyebrow">02 / Region</p>
-            <h2 id="map-title">Well map</h2>
-            <p className="empty-state">Awaiting a validated dataset.</p>
-          </section>}
-
-          {!batch && <section className="panel" aria-labelledby="chart-title">
-            <p className="eyebrow">03 / History</p>
-            <h2 id="chart-title">Depth over time</h2>
-            <p className="empty-state">Awaiting a validated dataset.</p>
-          </section>}
-
-          {!batch && <section className="panel" aria-labelledby="results-title">
-            <p className="eyebrow">04 / Evaluation</p>
-            <h2 id="results-title">Results</h2>
-            <p className="empty-state">Awaiting a validated dataset.</p>
-          </section>}
-        </div>
-      </main>
-
-      <footer>Historical reconstruction prototype. Export validation does not verify model accuracy or leakage prevention.</footer>
-    </>
-  );
+  if (state.kind === 'ready') return <WellWorkspace key={JSON.stringify(state.batch.predictions.meta)} batch={state.batch} />;
+  return <>
+    <a className="skip-link" href="#workspace">Skip to workspace</a>
+    <header className="page-header">
+      <p className="brand-mark">Alter Ego</p>
+      <h1>Groundwater Intelligence</h1>
+    </header>
+    <main id="workspace" tabIndex={-1}>
+      {state.kind === 'loading' && <p className="notice" role="status">Loading the complete export batch...</p>}
+      {state.kind !== 'loading' && <aside className="notice" role="alert">
+        <strong>{state.kind === 'missing' ? 'Data unavailable' : 'Invalid export batch'}</strong>
+        <p>{state.message}</p>
+        <p>No partial batch is displayed.</p>
+        <button type="button" onClick={() => setAttempt(value => value + 1)}>Retry loading</button>
+      </aside>}
+    </main>
+  </>;
 }

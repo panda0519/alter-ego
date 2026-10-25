@@ -1,5 +1,57 @@
 # Person A status
 
+## UI refresh on feature/ui-refresh - 2026-10-25 IST
+
+Presentation rebuild on top of integrated main `d323285`. Scientific files, contracts,
+and the published `b12-final-syn40-seed42-r2` batch were not rewritten.
+`feature/ui-refresh` commit `a06ce01` was not present locally or on origin, so this
+refresh started from `d323285`.
+
+What changed:
+- Three views: Stations, Analysis, and AI Assistant. The selected station, method,
+  and outage state stay in place when the view changes.
+- Stations opens on the exported map, a searchable station list, and a station card.
+  Coordinates stay the validated synthetic positions. The map is labelled as a
+  demonstration region.
+- Analysis keeps the existing chart, null gaps, outage/reveal/reset rules, priority
+  order, and exact evaluation numbers. Display text uses IDW, GCN-LSTM, and
+  Physics-enhanced GCN-LSTM. Physics stays Not available while its status is not_run.
+  The comparison states that IDW has the lower holdout test MAE on this export.
+- Full provenance, dirty training revisions, Nodus status, and technical metadata
+  remain in About this data. The visible banner is: Simulated groundwater data —
+  not real field measurements.
+- Aqua is a CSS/SVG assistant. Suggested questions are answered from the validated
+  export. Live Agent37 is not claimed. A minimal connector at `agent/proxy/`
+  forwards questions only when `AGENT37_API_URL`, `AGENT37_API_KEY`, and
+  `AGENT_CONTEXT_URL` are set on the server. Those values are not in the frontend
+  or Git. The public static site uses the export briefing.
+
+Checks on 2026-10-25:
+- `npm.cmd --prefix frontend run validate:data`: PASS.
+- `npm.cmd --prefix frontend run typecheck`: PASS.
+- `npm.cmd --prefix frontend test`: PASS, 130 tests, 0 failed. The previous 124
+  checks remain, plus navigation, export-briefing, proxy rejection, rate limit,
+  unauthorized, timeout, leaked-context, and frontend-secret checks.
+- `npm.cmd --prefix frontend run build`: PASS. Vite reported 688 modules.
+- `node checks/browser.mjs` against `http://127.0.0.1:4173`: PASS, including the
+  18 fixture combinations, map sync, chart gaps, 24 outage cycles, priorities, and
+  the Agent37 context-check states.
+- `ALTER_EGO_CHECK_BATCH=candidate; node checks/browser.mjs`: PASS, including all
+  120 well/method selections and 48 outage/reveal/reset cycles.
+- `git diff --check`: PASS. `contracts/`, `frontend/package-lock.json`, and
+  `frontend/public/data/` were not modified.
+
+Local preview: `http://127.0.0.1:4173`.
+The optional proxy, from the repository root, is `node agent/proxy/server.mjs`
+on `http://127.0.0.1:8787` after the three server variables are set. It was not
+deployed and no Agent37 credential was used.
+
+Render: the existing static site can deploy from `main` with the repository root
+as the root directory, Node 24.22.1, build `cd frontend && npm ci && npm run build`,
+and publish directory `frontend/dist`. Do not add a start command or put API keys
+in Vite variables. Live Agent37 remains blocked until a separate approved proxy
+host exists.
+
 ## A09 B12-r2 local integration handoff - 2026-10-24 IST
 
 Local integration: PASS. Person B's intended final export is integrated, but remains

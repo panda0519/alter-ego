@@ -4,10 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import type { Well } from './data/models';
 import { validCoordinates } from './data/coordinates';
 
-interface Props { wells: Well[]; selectedId?: string; onSelect: (id: string) => void }
+interface Props { wells: Well[]; selectedId?: string; onSelect: (id: string) => void; active?: boolean }
 type MapStatus = 'loading' | 'ready' | 'tiles-unavailable' | 'map-unavailable';
 
-export default function WellMap({ wells, selectedId, onSelect }: Props) {
+export default function WellMap({ wells, selectedId, onSelect, active = true }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markers = useRef(new Map<string, L.CircleMarker>());
@@ -66,7 +66,7 @@ export default function WellMap({ wells, selectedId, onSelect }: Props) {
 
       for (const well of locatedWells) {
         const marker = L.circleMarker([well.latitude, well.longitude], {
-          radius: 8, color: '#193b40', fillColor: '#438986', fillOpacity: 0.9, weight: 2,
+          radius: 8, color: '#10253C', fillColor: '#7FB8B4', fillOpacity: 0.95, weight: 2,
         }).addTo(map);
         const tooltip = document.createElement('span');
         tooltip.textContent = `${well.id} (${well.role})`;
@@ -101,7 +101,7 @@ export default function WellMap({ wells, selectedId, onSelect }: Props) {
   useEffect(() => {
     for (const [id, marker] of markers.current) {
       const selected = id === selectedId;
-      marker.setStyle({ color: selected ? '#713209' : '#193b40', fillColor: selected ? '#f6b35b' : '#438986', weight: selected ? 4 : 2 });
+      marker.setStyle({ color: selected ? '#0B1B2B' : '#10253C', fillColor: selected ? '#3CCBC0' : '#7FB8B4', weight: selected ? 4 : 2 });
       marker.setRadius(selected ? 11 : 8);
       marker.getElement()?.setAttribute('aria-pressed', String(selected));
       if (selected) {
@@ -111,10 +111,14 @@ export default function WellMap({ wells, selectedId, onSelect }: Props) {
     }
   }, [selectedId, locatedWells, onSelect]);
 
+  useEffect(() => {
+    if (active) mapRef.current?.invalidateSize({ pan: false });
+  }, [active]);
+
   return <section className="panel map-panel" aria-labelledby="map-title">
-    <p className="eyebrow">02 / Region</p>
-    <h2 id="map-title">Well map</h2>
-    <p id="map-help">Select a circle or use the well list. Focus a circle and press Enter or Space. The larger amber circle is selected.</p>
+    <h2 id="map-title">Station map</h2>
+    <p className="region-label">Demonstration region. Positions are the exported coordinates for this dataset.</p>
+    <p id="map-help">Select a circle or use the station list. Focus a circle and press Enter or Space. The larger aqua circle is selected.</p>
     {locatedWells.length !== wells.length && <p role="status">{wells.length - locatedWells.length} well locations cannot be mapped. Their list entries remain available.</p>}
     {!locatedWells.length && <p className="notice" role="status">No valid well coordinates are available. Use the well list and details.</p>}
     {!!locatedWells.length && <>

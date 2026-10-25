@@ -165,6 +165,22 @@ try {
     }
     throw new Error(`Page did not display: ${text}`);
   }
+  async function showTab(name) {
+    await evaluate(`document.querySelector('[data-nav="${name}"]')?.click()`);
+    await pause(80);
+  }
+  async function openAbout() {
+    await evaluate(`document.getElementById('about-data-open')?.click()`);
+    for (let i = 0; i < 30; i++) {
+      if (await evaluate('document.getElementById("about-data")?.open === true')) return;
+      await pause(50);
+    }
+    throw new Error('About this data did not open');
+  }
+  async function closeAbout() {
+    await evaluate(`document.getElementById('about-data-close')?.click()`);
+    await pause(40);
+  }
   async function navigate(mode) {
     scenario = mode;
     await send('Page.navigate', { url: origin });
@@ -174,8 +190,16 @@ try {
     await runCandidate({ send, evaluate, waitText, navigate, pause, predictions: fixturePredictions, setScenario: value => { scenario = value; }, setTileMode: value => { tileMode = value; } });
   } else {
   await navigate('valid');
-  const valid = await waitText('6 wells loaded');
+  await waitText('6 wells loaded');
+  await openAbout();
+  const valid = await evaluate('document.body.innerText');
   for (const expected of ['Dataset: synthetic', 'artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', '60 series dates loaded', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
+  await closeAbout();
+  await showTab('analysis');
+  await waitText('Groundwater depth');
+  await showTab('assistant');
+  await waitText('Groundwater Assistant');
+  await showTab('stations');
   assert.ok(!valid.includes('Retry loading'));
   console.log('PASS browser: published batch, type/dates/counts and fixture warning');
   async function chooseMethod(method) {
@@ -325,6 +349,7 @@ try {
   await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: failureHook.identifier });
   await navigate('valid'); await waitText('Map tiles loaded.');
   console.log('PASS browser: initialization failure cleans up map and preserves list/details; next mount recovers');
+  await showTab('analysis');
   // A05 visualization: inspect real SVG path breaks and the date-aligned data.
   const selectedPath = '.history-selected .recharts-line-curve';
   await chooseMethod('gcn_lstm');
@@ -364,7 +389,7 @@ try {
   assert.equal(await evaluate('document.querySelector(".history-tooltip").innerText.includes("Observed")'), false);
   console.log('PASS browser: optional IDW/observations, real null-path breaks, units/direction and holdout observation exclusion');
   for (const mode of ['history-gaps', 'history-calendar-gap']) {
-    await navigate(mode); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+    await navigate(mode); await waitText('6 wells loaded'); await showTab('analysis'); await chooseMethod('gcn_lstm');
     for (let i = 0; i < 100; i++) {
       if (await evaluate(`!!document.querySelector('${selectedPath}')`)) break;
       await pause(100);
@@ -372,7 +397,7 @@ try {
     assert.ok(await evaluate(`(document.querySelector('${selectedPath}').getAttribute('d').match(/M/g) || []).length > 1`));
     console.log(`PASS browser: ${mode} produces visible path gaps, not interpolation`);
   }
-  await navigate('history-empty'); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+  await navigate('history-empty'); await waitText('6 wells loaded'); await showTab('analysis'); await chooseMethod('gcn_lstm');
   await waitText('No displayable history values');
   assert.equal(await evaluate('document.querySelectorAll(".history-panel .recharts-wrapper").length'), 0);
   await evaluate('document.getElementById("show-idw").click()');
@@ -412,6 +437,7 @@ try {
     await waitNewMap(refreshedId);
     await waitText('Map tiles loaded.');
   }
+  await showTab('analysis');
   for (const width of [390, 1280]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 700 });
     assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), `No horizontal overflow at ${width}px`);
@@ -492,7 +518,7 @@ try {
   }
   console.log('PASS browser: switches before/after reveal reset privacy; keyboard action and reveal/outage tooltip checks; nonheldout roles have no demo controls');
   for (const scenario of ['outage-unavailable', 'outage-no-truth']) {
-    await navigate(scenario); await waitText('6 wells loaded'); await selectWell(heldout.id);
+    await navigate(scenario); await waitText('6 wells loaded'); await showTab('analysis'); await selectWell(heldout.id);
     await clickDemo('simulate-outage', 'simulated-outage'); await assertHidden();
     await clickDemo('reveal-observations', 'reveal');
     if (scenario === 'outage-unavailable') assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('Selected-method predictions are unavailable'));
@@ -504,7 +530,7 @@ try {
   }
   await navigate('valid'); await waitText('6 wells loaded'); await selectWell(heldout.id);
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
-  await navigate('new-batch'); await waitText('browser-test-new-dataset'); await selectWell(heldout.id); await assertHidden();
+  await navigate('new-batch'); await waitText('6 wells loaded'); await openAbout(); await waitText('browser-test-new-dataset'); await closeAbout(); await showTab('analysis'); await selectWell(heldout.id); await assertHidden();
   assert.equal(await evaluate('document.getElementById("outage-state").dataset.mode'), 'sensor-available');
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
   await evaluate('document.querySelector(".outage-controls").scrollIntoView({ block: "start" })');
@@ -512,6 +538,7 @@ try {
   await writeFile(join(tmpdir(), 'alter-ego-a06-mobile.png'), Buffer.from(demoScreenshot.data, 'base64'));
   console.log('PASS browser: unavailable predictions, absent truth and new dataset reset safely; mobile demo screenshot captured');
   await navigate('valid'); await waitText('6 wells loaded');
+  await showTab('analysis');
   for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
     await chooseMethod(method);
     assert.deepEqual(await evaluate('[...document.querySelectorAll("[data-priority-id]")].map(row => row.dataset.priorityId)'), ['SYN-006','SYN-005','SYN-004','SYN-003','SYN-002','SYN-001']);
@@ -551,7 +578,12 @@ try {
       await writeFile(join(tmpdir(), `alter-ego-a07-${panel}-${width}.png`), Buffer.from(capture.data, 'base64'));
     }
   }
-  await navigate('result-statuses'); await waitText('TEST ONLY - no experiment');
+  await navigate('result-statuses');
+  await waitText('6 wells loaded');
+  await openAbout();
+  await waitText('TEST ONLY - no experiment');
+  await closeAbout();
+  await showTab('analysis');
   assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testMae]").textContent'), '0 m');
   assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testPairs]").textContent'), '1');
   for (const method of ['gcn_lstm', 'gcn_lstm_physics']) assert.equal(await evaluate(`document.querySelector('[data-result-method=${method}] [data-metric=testMae]').textContent`), 'Unavailable');
@@ -562,6 +594,7 @@ try {
   assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 0);
   console.log('PASS browser: test-only validated completed/failed/not_run rendering, zero preservation, unavailable priorities and rejection of fixture accuracy claims; desktop/mobile screenshots captured');
   await navigate('valid'); await waitText('6 wells loaded');
+  await showTab('assistant');
   assert.equal(await evaluate('document.querySelectorAll(".briefing-launch").length'), 0);
   assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Agent37 instance is not configured'));
   assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Optional backup service'));

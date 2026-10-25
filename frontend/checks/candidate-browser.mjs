@@ -27,11 +27,30 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
     assert.equal(await evaluate('document.querySelector(".history-table thead").innerText.includes("Revealed")'), false);
     assert.equal(await evaluate('document.querySelectorAll(".history-tooltip").length'), 0);
   }
+  async function showTab(name) {
+    await evaluate(`document.querySelector('[data-nav="${name}"]')?.click()`);
+    await pause(80);
+  }
+  async function openAbout() {
+    await evaluate(`document.getElementById('about-data-open')?.click()`);
+    for (let i = 0; i < 30; i++) {
+      if (await evaluate('document.getElementById("about-data")?.open === true')) return;
+      await pause(50);
+    }
+    throw new Error('About this data did not open');
+  }
+  async function closeAbout() {
+    await evaluate(`document.getElementById('about-data-close')?.click()`);
+    await pause(40);
+  }
   await navigate('valid');
-  const body = await waitText('40 wells loaded');
+  await waitText('40 wells loaded');
+  await openAbout();
+  const body = await evaluate('document.body.innerText');
   for (const label of ['SYNTHETIC / PROVISIONAL', '+dirty', predictions.meta.run_id, 'Physics reconstruction is not completed.', 'not been independently verified',
     'IDW performed better on the holdout test', 'A physics-trained model is not selected', 'Nodus and live Agent37 integrations are not verified',
     'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
+  await closeAbout();
   for (const name of Object.keys(raw)) {
     const served = await evaluate(`fetch('/data/${name}.json').then(response => response.json()).then(value => value.meta)`);
     assert.deepEqual(served, predictions.meta);
@@ -76,6 +95,8 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
     }
     await method('gcn_lstm');
     for (const panel of ['page-header','map-panel','history-panel','results-panel']) {
+      if (panel === 'map-panel') await showTab('stations');
+      if (panel === 'history-panel' || panel === 'results-panel') await showTab('analysis');
       await evaluate(`document.querySelector('.${panel}').scrollIntoView({ block: 'start' })`);
       await pause(200);
       assert.ok(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), `${panel} overflow at ${width}`);
@@ -89,6 +110,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   await method('idw'); await hidden();
   await demo('simulate-outage','simulated-outage'); await demo('reveal-observations','reveal');
   await select(holdouts[0].id); await hidden();
+  await showTab('analysis');
   await evaluate('document.getElementById("simulate-outage").focus()');
   await send('Input.dispatchKeyEvent', { type:'keyDown', key:'Enter', code:'Enter', text:'\r', windowsVirtualKeyCode:13 });
   await send('Input.dispatchKeyEvent', { type:'keyUp', key:'Enter', code:'Enter', windowsVirtualKeyCode:13 });
@@ -103,6 +125,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   setTileMode('failure'); await navigate('valid'); await waitText('Background map tiles are unavailable or incomplete.');
   await select(holdouts[0].id); await method('gcn_lstm'); await hidden();
   assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 40);
+  await showTab('assistant');
   await evaluate('document.getElementById("check-agent-context").click()');
   await waitText('not an Agent37 fetch');
   assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Optional backup service'));

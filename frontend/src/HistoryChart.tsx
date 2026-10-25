@@ -14,11 +14,10 @@ export default function HistoryChart({ batch, selection, demoMode = 'sensor-avai
   const chartKey = `${well?.id}/${method}/${idwVisible}/${observationsVisible}/${demoMode}`;
   const observationLabel = well?.role === 'holdout' ? 'Revealed withheld readings' : 'Observed readings';
   return <section className="panel history-panel" aria-labelledby="chart-title">
-    <p className="eyebrow">03 / History</p>
-    <h2 id="chart-title">Depth over time</h2>
+    <h2 id="chart-title">Groundwater depth</h2>
     <p className="history-identity" role="status">{well && method ? `History: ${well.id} / ${method}` : 'Choose a valid well and method to view history.'}</p>
-    <p>{batch.predictions.dates.length} series dates loaded. Depth in m below ground ({batch.predictions.meta.depth_unit}). Larger values mean deeper water; depth increases downward on this chart.</p>
-    <p>{batch.predictions.meta.dataset_kind} / artifact_kind={batch.predictions.meta.artifact_kind}{fixture ? ' - Illustrative series, not trained results or measured field accuracy.' : ''}</p>
+    <p>{batch.predictions.dates.length} series dates loaded. Depth is metres below ground. Larger values mean deeper water; depth increases downward on this chart.</p>
+    {fixture && <p>Illustrative series, not trained results or measured field accuracy.</p>}
     {well && method && <>
       <fieldset className="chart-options">
         <legend>Optional history overlays</legend>
