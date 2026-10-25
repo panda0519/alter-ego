@@ -120,14 +120,21 @@ th, td { padding: 8px; border-bottom: 1px solid #E1EAF0; text-align: left; }
 .aqua-chat-head { display: flex; gap: 12px; align-items: center; }
 .aqua-chat-head p { margin: 0; color: #5D7383; }
 .chat-log { display: grid; gap: 8px; max-height: 320px; overflow: auto; }
-.chat-message { padding: 10px 12px; border-radius: 14px; background: #F3F7FA; }
+.chat-message { padding: 10px 12px; border-radius: 14px; background: #F3F7FA; line-height: 1.45; }
 .chat-message.user { background: #E7F6F5; }
-.chat-message p { margin: 0; }
-.chat-kicker { margin-bottom: 4px; color: #5D7383; font-size: 0.75rem; font-weight: 700; }
+.chat-message p, .chat-body ul { margin: 0; }
+.chat-body { display: grid; gap: 6px; }
+.chat-body ul { padding-left: 1.1rem; }
+.chat-body li { margin: 2px 0; }
+.chat-kicker { margin-bottom: 4px; color: #5D7383; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.01em; }
+.status-pill { display: inline-flex; width: fit-content; margin: 0; padding: 3px 10px; border-radius: 999px; background: #E7F6F5; color: #0F6E68; font-size: 0.78rem; font-weight: 700; }
 .chat-compose input { flex: 1 1 180px; }
 .suggestion-row button { flex: 1 1 180px; text-align: left; }
-.connection-details { padding: 10px 12px; border: 1px solid #E1EAF0; border-radius: 16px; background: #fff; }
-.briefing-panel { margin-top: 8px; }
+.connection-details { border: 0; background: transparent; }
+.connection-details summary { width: fit-content; color: #5D7383; font-size: 0.82rem; cursor: pointer; }
+.connection-details[open] { padding: 12px; border: 1px solid #E1EAF0; border-radius: 16px; background: #fff; }
+.briefing-panel { display: grid; gap: 8px; margin-top: 8px; }
+.briefing-panel .status-pill { margin-bottom: 2px; }
 .briefing-launch { display: inline-flex; min-height: 44px; align-items: center; padding: 8px 12px; border-radius: 12px; background: #10253C; color: #fff; }
 
 .aqua-launcher { position: fixed; z-index: 26; right: 16px; bottom: 16px; width: 76px; height: 88px; padding: 0; border: 0; background: transparent; filter: drop-shadow(0 8px 16px rgba(16, 37, 60, 0.18)); animation: aqua-float 4.8s ease-in-out infinite; }

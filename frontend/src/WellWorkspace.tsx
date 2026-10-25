@@ -154,7 +154,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
       <div hidden={!assistantOpen} data-view="assistant" className={view === 'assistant' ? 'assistant-page' : 'assistant-drawer'}>
         {view !== 'assistant' && <button type="button" className="text-button drawer-close" onClick={() => setAquaOpen(false)}>Close</button>}
         <AquaChat batch={batch} stationId={well?.id} chartMethod={method} messages={messages} onMessages={setMessages} />
-        <details className="connection-details" open>
+        <details className="connection-details">
           <summary>Agent37 connection check</summary>
           <AgentBriefing context={batch.agent_context} selectedId={well?.id} method={method} />
         </details>

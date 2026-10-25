@@ -6,6 +6,31 @@ import AquaMark from './AquaMark';
 
 export interface ChatMessage { id: number; role: 'user' | 'assistant'; text: string; source?: AssistantSource }
 
+function inlineText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    return part.replaceAll('**', '');
+  });
+}
+
+function ChatBody({ text }: { text: string }) {
+  const blocks: { kind: 'p' | 'ul'; lines: string[] }[] = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const bullet = line.startsWith('- ') ? line.slice(2) : null;
+    const last = blocks.at(-1);
+    if (bullet && last?.kind === 'ul') last.lines.push(bullet);
+    else blocks.push(bullet ? { kind: 'ul', lines: [bullet] } : { kind: 'p', lines: [line] });
+  }
+  if (!blocks.length) return null;
+  return <div className="chat-body">
+    {blocks.map((block, index) => block.kind === 'ul'
+      ? <ul key={index}>{block.lines.map((line, lineIndex) => <li key={lineIndex}>{inlineText(line)}</li>)}</ul>
+      : <p key={index}>{inlineText(block.lines[0])}</p>)}
+  </div>;
+}
+
 export default function AquaChat({ batch, stationId, chartMethod, messages, onMessages }: {
   batch: Batch;
   stationId?: string;
@@ -41,7 +66,7 @@ export default function AquaChat({ batch, stationId, chartMethod, messages, onMe
       <div>
         <h2 id="aqua-title">Aqua — Groundwater Assistant</h2>
         <p>Station {stationId ?? 'none'} · default method {contextMethod}</p>
-        {live ? <p>Powered by Agent37</p> : <p>Verified export briefing. Agent37 instance gr7nnwqxgf is not answering from this page.</p>}
+        {live ? <p className="status-pill">Powered by Agent37</p> : <p className="status-pill">Verified export briefing. Agent37 instance gr7nnwqxgf is not answering from this page.</p>}
       </div>
     </div>
     {chartMethod && chartMethod !== contextMethod && <p className="caveat" role="status">The chart uses {chartMethod}. Aqua explains the exported default method {contextMethod} and will not invent facts for the chart method.</p>}
@@ -52,7 +77,7 @@ export default function AquaChat({ batch, stationId, chartMethod, messages, onMe
       {messages.length === 0 && <p className="empty-state">Ask about the selected station, inspection priorities, the graph, or the limits of this export.</p>}
       {messages.map(message => <article key={message.id} className={`chat-message ${message.role}`}>
         <p className="chat-kicker">{message.role === 'user' ? 'You' : message.source === 'agent37' ? 'Aqua · Agent37' : 'Aqua · export briefing'}</p>
-        <p>{message.text}</p>
+        <ChatBody text={message.text} />
       </article>)}
       {pending && <p role="status">Aqua is reading the export…</p>}
       {failed && <p role="alert">The question could not be answered. <button type="button" onClick={() => send(failed)}>Retry</button></p>}
