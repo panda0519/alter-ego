@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Batch } from './data/models';
 import { provisionalReasons, reportedTrainingRevisions } from './data/provenance';
+import { holdoutComparison } from './data/presentation';
 
 export default function AboutData({ batch, open, onClose }: { batch: Batch; open: boolean; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -26,6 +27,16 @@ export default function AboutData({ batch, open, onClose }: { batch: Batch; open
       <p>{meta.caption}</p>
       <p>{batch.metrics.evaluation.notes}</p>
       <p>The water-balance regulariser uses prototype assumptions; its label does not establish improved accuracy or validated hydrology.</p>
+      {meta.artifact_kind !== 'fixture' && <>
+        <p>Historical reconstruction only, not forecasting.</p>
+        <p>{holdoutComparison(batch) ?? 'Holdout comparison is unavailable for this export.'}</p>
+        <p>Exported metrics have not been independently verified as model accuracy.</p>
+        <p>{batch.metrics.methods.gcn_lstm_physics.status === 'completed'
+          ? `Physics-enhanced GCN-LSTM completed with exported lambda ${batch.metrics.methods.gcn_lstm_physics.lambda ?? 'unavailable'}. These are reconstructions, not field measurements.`
+          : 'A physics-trained model is not selected; the physics export remains not_run.'}</p>
+        <p>{batch.run_info.code_revision && !batch.run_info.code_revision.includes('+dirty') ? 'The exporter revision is clean.' : 'Training/source provenance remains unresolved.'}</p>
+        <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
+      </>}
       {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
       {trainingRevisions.length > 0 && <div>
         <p>Historical reconstruction only, not forecasting. Person B reports that IDW performed better on the holdout test; the default remains validation-selected.</p>

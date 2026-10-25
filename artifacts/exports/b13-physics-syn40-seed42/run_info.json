@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b13-physics-syn40-seed42",
+    "dataset_id": "cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-25T02:26:01Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm_physics",
+    "depth_unit": "m_below_ground",
+    "caption": "Selected reconstruction on the synthetic dataset cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b. Default method is gcn_lstm_physics by common-mask validation MAE. Physics-enhanced GCN-LSTM completed at lambda 0.1. This is not field accuracy."
+  },
+  "code_revision": "e2482ce08e797608aa4957f59bea600c6bb6da9f",
+  "checkpoint_sha256": "0a088028b1d8026001e9a3931df3597793640e86e03a50650dd4e3467e3240d2",
+  "python_version": "3.11.9",
+  "torch_version": "2.8.0+cpu",
+  "device": "cpu",
+  "nodus_job_ids": [],
+  "selected_positive_lambda": 0.1,
+  "physics_assumptions": [
+    "Positive-lambda checkpoint selection ignored warmup epochs. Selected run runs\\lambda01 at lambda 0.1.",
+    "The water-balance regulariser uses Sy 0.10, alpha 0.15, beta 0.10 and a 7-day storage residual. It is not a validated hydrology model.",
+    "Frozen q is 0.0 m/day from 32 permitted wells. Residual scale is 0.1533439339108233 m. Lateral flow is false.",
+    "Nodus was not used. No job id exists."
+  ],
+  "data_sources": [
+    "synthetic bundle cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b",
+    "IDW uses previous-day visible depths only, power 2, at most 6 donors.",
+    "Fictional wells. NASA POWER weather forced the synthetic generator and is not a well gauge.",
+    "GCN-LSTM predictions come from runs/lambda0, scored once per ending window.",
+    "Lambda-0 checkpoint sha256 0a088028b1d8026001e9a3931df3597793640e86e03a50650dd4e3467e3240d2.",
+    "Lambda 0.1 and lambda 1 checkpoint hashes are in the local evaluation record. Selected run runs\\lambda01."
+  ]
+}

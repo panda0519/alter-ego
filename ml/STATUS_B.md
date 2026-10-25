@@ -1,10 +1,21 @@
 # Person B status
 
+## Completed positive-lambda export - 2026-10-25
+
+`runs/lambda01` selected epoch 13 at lambda 0.1. `runs/lambda1` selected epoch 6 at lambda 0.2 during the ramp. Neither matches `runs/lambda0` epoch 3. Evaluation exported physics as completed. Run id `b13-physics-syn40-seed42`. Commands, from the repository root with `.venv\Scripts\python.exe`:
+
+- `python -m ml.cli prepare --config ml/configs/prototype.yaml --kind synthetic --output data/processed/active --weather-cache data/cache/power`
+- `python -m ml.cli train` for lambda targets 0, 0.1, and 1.0 into `runs/lambda0`, `runs/lambda01`, and `runs/lambda1`
+- `python -m ml.cli evaluate --runs runs/lambda0 runs/lambda01 runs/lambda1 --output runs/evaluation`
+- `python -m ml.cli export --evaluation runs/evaluation --run-id b13-physics-syn40-seed42 --output artifacts/exports/b13-physics-syn40-seed42`
+
+`tests/test_physics.py::test_positive_lambda_selection_ignores_warmup_epochs` and `tests/test_evaluation.py` passed (8 tests). Field accuracy is not claimed.
+
 ## Checkpoint selection fix - 2026-10-25
 
 Positive-lambda training now selects a checkpoint only from epochs after `lambda_zero_epochs`, and only once scheduled lambda is greater than 0. A lambda target of 0 may still select any epoch. Warmup epochs remain in `history.jsonl` and do not reset early stopping. `ml/export` and `publish` can emit `gcn_lstm_physics` as completed only for a distinct checkpoint whose lambda is 0.1 or 1.0. A warmup or lambda-0 weight match is refused.
 
-No new training run was produced. This machine has no `data/processed/active`, no `runs/` checkpoints, no NASA POWER cache, and no PyTorch in `.venv` or system Python 3.11. `pytest` was not executed. Python syntax of the edited modules was checked with `ast.parse` only. The published batch `b12-final-syn40-seed42-r2` is unchanged: `gcn_lstm_physics` stays `not_run`.
+The paragraph below was the blocker before PyTorch was installed. The completed export above replaces it.
 
 Phase: B12–B13 validation selection, one holdout score, and the final local export are complete. Nodus did not run. No joint rehearsal was held.
 

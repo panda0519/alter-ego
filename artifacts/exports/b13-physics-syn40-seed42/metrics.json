@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "run_id": "b13-physics-syn40-seed42",
+    "dataset_id": "cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b",
+    "dataset_kind": "synthetic",
+    "artifact_kind": "model_output",
+    "generated_at_utc": "2026-10-25T02:26:01Z",
+    "as_of_date": "2024-12-31",
+    "default_method": "gcn_lstm_physics",
+    "depth_unit": "m_below_ground",
+    "caption": "Selected reconstruction on the synthetic dataset cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b. Default method is gcn_lstm_physics by common-mask validation MAE. Physics-enhanced GCN-LSTM completed at lambda 0.1. This is not field accuracy."
+  },
+  "evaluation": {
+    "test_group": "holdout",
+    "same_common_mask": true,
+    "split_seed": 42,
+    "notes": "Completed methods share one holdout well-date only when every completed prediction and the label are finite. Each date is scored once from the window ending that day. Default gcn_lstm_physics was locked from validation MAE before the holdout score. Validation pairs 713, wells 10. Test pairs 1109, contributing wells 8, holdout valid labels 1319, coverage 0.8407884761182715. Displayed wells 40. Chart dates 60 are not the pair count. gcn_lstm_physics completed from runs\\lambda01 at lambda 0.1. q is 0.0 m/day after clipping the median -0.00024669642345253776; eligible wells 32. This is not field accuracy."
+  },
+  "methods": {
+    "idw": {
+      "status": "completed",
+      "validation_mae_m": 1.1042053369012759,
+      "validation_pairs": 713,
+      "test_mae_m": 1.4958895956006708,
+      "test_rmse_m": 2.034039534948381,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": null
+    },
+    "gcn_lstm": {
+      "status": "completed",
+      "validation_mae_m": 0.8590178847921711,
+      "validation_pairs": 713,
+      "test_mae_m": 1.6321938024373073,
+      "test_rmse_m": 2.060902360345488,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": 0.0
+    },
+    "gcn_lstm_physics": {
+      "status": "completed",
+      "validation_mae_m": 0.795083214362352,
+      "validation_pairs": 713,
+      "test_mae_m": 2.0695366678091838,
+      "test_rmse_m": 2.503026041108472,
+      "test_pairs": 1109,
+      "test_wells": 8,
+      "lambda": 0.1
+    }
+  }
+}

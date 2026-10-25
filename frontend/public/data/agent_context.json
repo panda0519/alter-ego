@@ -1,21 +1,21 @@
 {
   "meta": {
     "schema_version": "1.0.0",
-    "run_id": "b12-final-syn40-seed42-r2",
-    "dataset_id": "05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351",
+    "run_id": "b13-physics-syn40-seed42",
+    "dataset_id": "cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b",
     "dataset_kind": "synthetic",
     "artifact_kind": "model_output",
-    "generated_at_utc": "2026-10-24T18:03:30Z",
+    "generated_at_utc": "2026-10-25T02:26:01Z",
     "as_of_date": "2024-12-31",
-    "default_method": "gcn_lstm",
+    "default_method": "gcn_lstm_physics",
     "depth_unit": "m_below_ground",
-    "caption": "Selected reconstruction on the synthetic dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351. Default method is gcn_lstm by common-mask validation MAE. The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. This is not field accuracy."
+    "caption": "Selected reconstruction on the synthetic dataset cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b. Default method is gcn_lstm_physics by common-mask validation MAE. Physics-enhanced GCN-LSTM completed at lambda 0.1. This is not field accuracy."
   },
   "limitations": [
-    "Dataset 05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351 is synthetic. Synthetic results are not field accuracy.",
+    "Dataset cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b is synthetic. Synthetic results are not field accuracy.",
     "Historical reconstruction only. This is not a live sensor feed or a forecast.",
-    "Default method is gcn_lstm by lower common-mask validation MAE. Holdout results were not used to change that choice.",
-    "The positive-lambda checkpoints match the lambda-0 warmup weights. They are not a physics-trained gain. gcn_lstm_physics is not_run for that reason.",
+    "Default method is gcn_lstm_physics by lower common-mask validation MAE. Holdout results were not used to change that choice.",
+    "gcn_lstm_physics is a completed reconstruction at lambda 0.1. It is not a field measurement.",
     "Priority thresholds are prototype inspection labels, not official warnings.",
     "The chart shows the exported test dates. Metric pairs are the common mask, not the chart length or the full cohort.",
     "Displayed wells are the frozen cohort. Test metrics use holdout wells that have a scored pair.",
@@ -25,481 +25,481 @@
     {
       "id": "SYN001",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 12.268768540376282,
-      "change_30d_m": 0.019806079886780736,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 13.684584840090293,
+      "change_30d_m": 0.06596041788923479,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN002",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 12.186484938942964,
-      "change_30d_m": 0.018078424901377232,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 13.673682144840058,
+      "change_30d_m": 0.06450067800711423,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN003",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 12.445474214440765,
-      "change_30d_m": -0.005286764525017418,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 13.74360751923165,
+      "change_30d_m": 0.0661521197955981,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN004",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 13.235413714076248,
-      "change_30d_m": -0.13298969079785294,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 14.04045768745353,
+      "change_30d_m": 0.1315837209626416,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN005",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 13.70057698717168,
-      "change_30d_m": -0.21995362414020647,
-      "priority": "normal",
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 14.673923778978757,
+      "change_30d_m": 0.24304598902425312,
+      "priority": "watch",
       "reason_codes": [
-        "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "prototype_change_gt_0_20_m",
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN006",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 13.95110098702382,
-      "change_30d_m": -0.3675065814685947,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 15.07222610279067,
+      "change_30d_m": 0.09753348808457751,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN007",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 14.028978250004515,
-      "change_30d_m": -0.4917088439049717,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 15.234805684184249,
+      "change_30d_m": 0.08418215165476006,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN008",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 14.627469731410502,
-      "change_30d_m": -0.5774225067653287,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 15.682486444767719,
+      "change_30d_m": 0.0653366853451125,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN009",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 13.168708931711572,
-      "change_30d_m": -0.010053596074730109,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 13.832216816009357,
+      "change_30d_m": 0.06636532972072473,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN010",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 12.858088254476813,
-      "change_30d_m": -0.05080474571146887,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 13.745750840057926,
+      "change_30d_m": 0.08651834330146357,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN011",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 13.756750788958218,
-      "change_30d_m": -0.2583145783005225,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 14.126780120758001,
+      "change_30d_m": 0.1699928343823629,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN012",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 14.083049409174178,
-      "change_30d_m": -0.2546018734529998,
-      "priority": "normal",
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 14.784384521471022,
+      "change_30d_m": 0.33952511662382534,
+      "priority": "watch",
       "reason_codes": [
-        "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "prototype_change_gt_0_20_m",
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN013",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 14.451609415996524,
-      "change_30d_m": -0.36302262712217903,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 15.317476663738109,
+      "change_30d_m": 0.1885063290980611,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN014",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 15.332681897872153,
-      "change_30d_m": -0.7157581091397986,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 16.021392036938053,
+      "change_30d_m": 0.07793921542604743,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN015",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 15.69124231244949,
-      "change_30d_m": -0.8363045928435326,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 16.439631242120416,
+      "change_30d_m": 0.10771659983750581,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN016",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 16.300645840418216,
-      "change_30d_m": -0.7304632818376078,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 16.910459657223125,
+      "change_30d_m": 0.11351254332845784,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN017",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 16.39929739480424,
-      "change_30d_m": -0.8432138100882653,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 17.11143666289579,
+      "change_30d_m": -0.012141627265815913,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN018",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 16.55568979716992,
-      "change_30d_m": -0.9772882531367628,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 17.25772882951562,
+      "change_30d_m": 0.033079332857177235,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN019",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 19.154492015137574,
-      "change_30d_m": -0.645989135449863,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 19.30824278861184,
+      "change_30d_m": 0.012508783173064586,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN020",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 17.063422933293015,
-      "change_30d_m": -0.6264782648097409,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 17.328655904813665,
+      "change_30d_m": 0.19048348879025312,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN021",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 18.11593121551632,
-      "change_30d_m": -0.6139753262069902,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 18.31582662500631,
+      "change_30d_m": 0.11905895288976254,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN022",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 19.411416520834145,
-      "change_30d_m": -0.47198973122449317,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 19.695252584333442,
+      "change_30d_m": 0.12340880357028183,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN023",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 20.00133027706159,
-      "change_30d_m": -0.42323175403767976,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.229587165358296,
+      "change_30d_m": 0.14739071205641707,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN024",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 19.493216776302333,
-      "change_30d_m": -0.473804002741975,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.028718401127882,
+      "change_30d_m": 0.15184100167781622,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN025",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 19.96363794174542,
-      "change_30d_m": -0.3804078859840807,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 19.97960881459086,
+      "change_30d_m": 0.13396433134374774,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN026",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.05513085222746,
-      "change_30d_m": -0.2661261972020448,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.65111417512621,
+      "change_30d_m": -0.0013211066742258026,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN027",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.41904582834548,
-      "change_30d_m": -0.27476657617437183,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.942062262460208,
+      "change_30d_m": 0.0060437532723476295,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN028",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.267723123163286,
-      "change_30d_m": -0.2929401506804936,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.928151483759745,
+      "change_30d_m": 0.013000194645233165,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN029",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.384978763104908,
-      "change_30d_m": -0.2451126290879806,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.03825523989711,
+      "change_30d_m": 0.005001081927975548,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN030",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.89638661436847,
-      "change_30d_m": -0.1660073049924904,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.194353426593082,
+      "change_30d_m": 0.017624886244856697,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN031",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 22.050678127488368,
-      "change_30d_m": -0.15266017665330267,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.25138567886763,
+      "change_30d_m": 0.013446486034560223,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN032",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.46639386138927,
-      "change_30d_m": -0.2376764653835579,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.102725058572958,
+      "change_30d_m": 0.03824920597587678,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN033",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.191488418224193,
-      "change_30d_m": -0.13373475662173462,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 20.896406583197113,
+      "change_30d_m": 0.0324525611364912,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN034",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.977475118063577,
-      "change_30d_m": -0.09229277877364694,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.131811380990257,
+      "change_30d_m": -0.01004938798410393,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN035",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 22.15292210546481,
-      "change_30d_m": -0.11469244518384158,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.22901827448558,
+      "change_30d_m": -0.01099036380497509,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN036",
       "role": "train_masked",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.95748247949231,
-      "change_30d_m": -0.21258245205769555,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.23346879788979,
+      "change_30d_m": -0.019012153455058467,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN037",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.781078852821757,
-      "change_30d_m": -0.20086058183197508,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.19353308270353,
+      "change_30d_m": -0.011934145019601772,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN038",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 22.244629492075607,
-      "change_30d_m": -0.13903437920144768,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.32718461264397,
+      "change_30d_m": -0.0058985741456965,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN039",
       "role": "visible",
-      "method": "gcn_lstm",
-      "latest_depth_m": 22.20275010658507,
-      "change_30d_m": -0.13286578590715337,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.323641166552797,
+      "change_30d_m": -0.01595894992199476,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     },
     {
       "id": "SYN040",
       "role": "holdout",
-      "method": "gcn_lstm",
-      "latest_depth_m": 21.8043061103887,
-      "change_30d_m": -0.19051241941331654,
+      "method": "gcn_lstm_physics",
+      "latest_depth_m": 21.224216375513972,
+      "change_30d_m": -0.00610640706613097,
       "priority": "normal",
       "reason_codes": [
         "prototype_change_le_0_20_m",
-        "gcn_lstm_ending_window"
+        "gcn_lstm_physics_ending_window"
       ]
     }
   ]

@@ -1,8 +1,32 @@
 # Person A status
 
+## Completed physics export - 2026-10-25 IST
+
+Local training after the warmup-epoch checkpoint fix produced `b13-physics-syn40-seed42`.
+Dataset `cbb724e586ee572b618b25c0fa35f23362104f402b3cc008d52c68662a49865b`, synthetic, seed 42.
+All three methods are completed on one common mask: 713 validation pairs, 10 wells; 1109 holdout pairs, 8 wells.
+
+| Method | Validation MAE (m) | Holdout test MAE (m) | Lambda |
+| --- | --- | --- | --- |
+| IDW | 1.1042053369012759 | 1.4958895956006708 | none |
+| GCN-LSTM | 0.8590178847921711 | 1.6321938024373073 | 0 |
+| Physics-enhanced GCN-LSTM | 0.795083214362352 | 2.0695366678091838 | 0.1 |
+
+The physics checkpoint is `runs/lambda01`, epoch 13, lambda 0.1. It does not match the lambda-0 weights. Default method is `gcn_lstm_physics` by validation MAE. IDW still has the lower holdout test MAE. This is not field accuracy. Nodus was not used.
+
+Published copies: `artifacts/exports/b13-physics-syn40-seed42/` and `frontend/public/data/`.
+
+Checks after publication:
+- `npm.cmd --prefix frontend run validate:data`: PASS.
+- `npm.cmd --prefix frontend run typecheck`: PASS.
+- `npm.cmd --prefix frontend test`: PASS, 130 tests.
+- `npm.cmd --prefix frontend run build`: PASS, 688 modules.
+- `.venv\Scripts\python.exe -m pytest tests/test_physics.py::test_positive_lambda_selection_ignores_warmup_epochs tests/test_evaluation.py tests/test_exports.py`: PASS, 21 tests.
+- Fixture and candidate browser checks against `http://127.0.0.1:4173`: PASS.
+
 ## Compact analysis UI and physics checkpoint rule - 2026-10-25 IST
 
-Physics was not completed. The published batch remains `b12-final-syn40-seed42-r2`.
+Superseded by the completed physics export above. At the time of this note, physics was not completed. The published batch was `b12-final-syn40-seed42-r2`.
 `gcn_lstm_physics` is still `not_run`, with null validation MAE, test MAE, test RMSE, and lambda.
 IDW validation MAE is 1.1042053369012759 m and holdout test MAE is 1.4958895956006706 m.
 GCN-LSTM validation MAE is 0.8598469860694834 m and holdout test MAE is 1.626403108513909 m.

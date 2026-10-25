@@ -47,9 +47,9 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   await waitText('Nov 2 – Dec 31, 2024');
   await openAbout();
   const body = await evaluate('document.body.innerText');
-  for (const label of ['SYNTHETIC / PROVISIONAL', '+dirty', predictions.meta.run_id, 'Physics reconstruction is not completed.', 'not been independently verified',
-    'IDW performed better on the holdout test', 'A physics-trained model is not selected', 'Nodus and live Agent37 integrations are not verified',
-    'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
+  for (const label of ['SYNTHETIC / CONTRACT-VALIDATED', predictions.meta.run_id, 'not been independently verified',
+    'IDW has a lower holdout test MAE than GCN-LSTM', 'Physics-enhanced GCN-LSTM completed with exported lambda 0.1',
+    'Nodus and live Agent37 integrations are not verified', 'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
   await closeAbout();
   for (const name of Object.keys(raw)) {
     const served = await evaluate(`fetch('/data/${name}.json').then(response => response.json()).then(value => value.meta)`);
@@ -65,7 +65,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
       assert.deepEqual(await evaluate('[...document.querySelectorAll(".history-table tbody tr")].map(row => row.children[1].textContent)'), well.predictions_m[selectedMethod].map(textValue));
       assert.equal(await evaluate('document.querySelector("[data-field=status]").textContent'), batch.metrics.methods[selectedMethod].status);
       if (well.role === 'holdout') await hidden();
-      if (selectedMethod === 'gcn_lstm_physics') {
+      if (selectedMethod === 'gcn_lstm_physics' && batch.metrics.methods.gcn_lstm_physics.status !== 'completed') {
         assert.equal(await evaluate('document.querySelectorAll(".history-selected").length'), 0);
         assert.equal(await evaluate('document.querySelector("[data-field=latest]").textContent'), 'Unknown');
       }

@@ -19,7 +19,7 @@ for (const [name, hash] of Object.entries(manifest.sha256)) {
 }
 const batch = validateBatch(raw);
 test('pinned four-file candidate retains identity, provenance and provisional limitations', () => {
-  assert.equal(manifest.source_commit, '89d85dae75267e3c0ba99abf607f42771fa0c371');
+  assert.equal(manifest.source_commit, 'e2482ce08e797608aa4957f59bea600c6bb6da9f');
   assert.equal(batch.predictions.meta.run_id, manifest.run_id);
   assert.equal(batch.predictions.meta.dataset_kind, 'synthetic');
   assert.equal(batch.predictions.meta.artifact_kind, 'model_output');
@@ -28,13 +28,14 @@ test('pinned four-file candidate retains identity, provenance and provisional li
   assert.equal(batch.predictions.dates[0], '2024-11-02');
   assert.equal(batch.predictions.dates.at(-1), '2024-12-31');
   assert.equal(batch.run_info.code_revision, manifest.export_code_revision);
-  assert.ok(manifest.reported_training_code_revisions.every(revision => revision.endsWith('+dirty')));
-  assert.equal(batch.run_info.selected_positive_lambda, null);
-  assert.equal(provisionalReasons(batch).length, 3);
+  assert.equal(batch.run_info.selected_positive_lambda, 0.1);
+  assert.equal(batch.metrics.methods.gcn_lstm_physics.status, 'completed');
+  assert.equal(batch.metrics.methods.gcn_lstm_physics.lambda, 0.1);
+  assert.equal(provisionalReasons(batch).length, 0);
 });
 test('reported dirty training provenance is scoped to this run and never mislabels another export', () => {
   assert.deepEqual(reportedTrainingRevisions(batch), manifest.reported_training_code_revisions);
-  assert.ok(provisionalReasons(batch).includes('Training/source provenance remains unresolved.'));
+  assert.equal(provisionalReasons(batch).includes('Training/source provenance remains unresolved.'), false);
   for (const key of ['run_id', 'dataset_id']) {
     const other = structuredClone(batch); other.predictions.meta[key] = 'different-export';
     assert.deepEqual(reportedTrainingRevisions(other), []);
@@ -42,18 +43,18 @@ test('reported dirty training provenance is scoped to this run and never mislabe
   const other = structuredClone(batch); other.run_info.code_revision = 'different-revision';
   assert.deepEqual(reportedTrainingRevisions(other), []);
 });
-test('candidate statuses and exported metrics remain exact; physics is unavailable, never zero', () => {
+test('candidate statuses and exported metrics remain exact; physics completed at lambda 0.1', () => {
   for (const row of resultRows(batch)) {
     const metric = batch.metrics.methods[row.method];
     assert.equal(row.testMae, metric.test_mae_m);
     assert.equal(row.testRmse, metric.test_rmse_m);
+    assert.equal(row.status, 'completed');
+    assert.equal(row.testPairs, 1109);
+    assert.equal(row.testWells, 8);
     if (row.method === 'gcn_lstm_physics') {
-      assert.equal(row.status, 'not_run'); assert.equal(row.testPairs, null);
-      for (const well of batch.predictions.wells) {
-        assert.ok(well.predictions_m[row.method].every(value => value === null));
-        assert.equal(well.summaries[row.method].priority, 'unknown');
-      }
-    } else { assert.equal(row.status, 'completed'); assert.equal(row.testPairs, 1109); assert.equal(row.testWells, 8); }
+      assert.equal(row.lambda, 0.1);
+      for (const well of batch.predictions.wells) assert.ok(well.predictions_m[row.method].every(value => Number.isFinite(value)));
+    }
   }
 });
 test('all 120 candidate selections preserve aligned data, nulls, priorities and reveal privacy', () => {
@@ -68,8 +69,7 @@ test('all 120 candidate selections preserve aligned data, nulls, priorities and 
       assert.deepEqual(buildHistory(batch, selection, { ...options, demoMode: 'reveal' }).points.map(point => point.observed), well.observations_m);
     }
     const row = priorityRows(batch, method).find(row => row.id === well.id);
-    if (method !== 'gcn_lstm_physics') assert.deepEqual(row.summary, well.summaries[method]);
-    else assert.equal(row.summary, null);
+    assert.deepEqual(row.summary, well.summaries[method]);
   }
 });
 test('repeated candidate outage, reveal, reset and selection transitions clear answers', () => {
