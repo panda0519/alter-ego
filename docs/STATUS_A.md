@@ -1,5 +1,9 @@
 # Person A status
 
+## Agent37 connector status - 2026-10-25 IST
+
+The Aqua proxy path is present and fail-closed. `AquaChat.tsx` calls `assistant.ts`, which uses the export briefing unless `VITE_AGENT_PROXY_URL` reaches `agent/proxy/server.mjs`. Fallback behaviour is covered by the assistant checks. Live Agent37 verification is pending. No reply `{ source: "agent37", text }` from instance `gr7nnwqxgf` has been observed. Server variables `AGENT37_API_URL`, `AGENT37_API_KEY`, and `AGENT_CONTEXT_URL` are not in Git. The Render site stays a static site. Details are in `agent/ACCEPTANCE.md`.
+
 ## Completed physics export - 2026-10-25 IST
 
 Local training after the warmup-epoch checkpoint fix produced `b13-physics-syn40-seed42`.

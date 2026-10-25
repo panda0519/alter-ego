@@ -7,10 +7,14 @@ are independent of Agent37. The backup integration is disabled by default.
 A local fixture/context-file check is not an
 Agent37 conversation or sponsor integration evidence.
 
-The architecture remains a Render static dashboard and a native Agent37 browser
-conversation in a separate tab. There is no application chat API, proxy or model
-key in the frontend. Agent37 must fetch the deployed agent_context.json itself
-on every data-dependent answer using tools actually offered by that account.
+The Render site remains one static dashboard. Aqua can also call the optional
+local proxy in `agent/proxy/server.mjs`, which delegates to
+`agent/proxy/assistant-core.mjs`. The browser uses `VITE_AGENT_PROXY_URL` only.
+It never receives `AGENT37_API_URL`, `AGENT37_API_KEY`, or a model key. When that
+proxy is unset or does not return `{ source: "agent37", text }`, Aqua answers
+from the loaded `agent_context.json`. A separate public Agent37 conversation URL
+may still be opened from `VITE_AGENT37_URL`. See `agent/ACCEPTANCE.md`. Live
+acceptance stays pending until a real reply from instance `gr7nnwqxgf` is observed.
 
 Scope conflict: MASTER_PLAN.md lists the Agent37 briefing as required and A08
 requires live fetch/answer evidence. The user's explicit decision makes this an
