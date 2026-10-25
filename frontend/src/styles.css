@@ -73,7 +73,9 @@ input, select { width: 100%; padding: 10px 12px; border: 1px solid #D5E2EA; bord
 .well-list, .priority-list { max-height: 460px; margin: 12px 0 0; padding: 0; overflow: auto; list-style: none; }
 .well-list button, .priority-list button { display: flex; width: 100%; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 10px 12px; border: 1px solid #E1EAF0; background: #fff; color: #10253C; text-align: left; }
 .well-list button[aria-pressed="true"], .priority-list button[aria-pressed="true"], .result-card button[aria-pressed="true"] { border-color: #0F8D85; background: #E7F6F5; }
-.well-role { color: #5D7383; font-size: 0.82rem; }
+.well-facts { display: grid; gap: 2px; margin-left: auto; text-align: right; }
+.well-role, .well-metric { color: #5D7383; font-size: 0.82rem; }
+.well-list button { align-items: flex-start; }
 .well-map { height: clamp(300px, 58vh, 680px); border-radius: 16px; background: #E7F1F4; }
 .well-map .leaflet-interactive:focus-visible { outline: none; }
 .leaflet-container { font: inherit; }
@@ -130,6 +132,7 @@ th, td { padding: 8px; border-bottom: 1px solid #E1EAF0; text-align: left; }
 .status-pill { display: inline-flex; width: fit-content; margin: 0; padding: 3px 10px; border-radius: 999px; background: #E7F6F5; color: #0F6E68; font-size: 0.78rem; font-weight: 700; }
 .chat-compose input { flex: 1 1 180px; }
 .suggestion-row button { flex: 1 1 180px; text-align: left; }
+.typing-indicator { margin: 0; color: #5D7383; }
 .connection-details { border: 0; background: transparent; }
 .connection-details summary { width: fit-content; color: #5D7383; font-size: 0.82rem; cursor: pointer; }
 .connection-details[open] { padding: 12px; border: 1px solid #E1EAF0; border-radius: 16px; background: #fff; }

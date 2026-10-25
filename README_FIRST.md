@@ -1,5 +1,7 @@
 # Start here
 
+The submission demo is described in [README.md](README.md). The notes below are the original setup pack.
+
 This is an implementation plan and setup pack, not a finished prototype.
 
 1. Both read MASTER_PLAN.md and AGENTS.md.

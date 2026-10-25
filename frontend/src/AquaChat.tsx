@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Batch, Method } from './data/models';
 import { askAssistant, suggestedQuestions } from './data/assistant';
 import type { AssistantSource } from './data/assistant';
@@ -13,15 +13,22 @@ function inlineText(text: string) {
   });
 }
 
+function sentences(text: string): string[] {
+  const parts = text.split(/(?<=\.)\s+/).map(part => part.trim()).filter(Boolean);
+  return parts.length ? parts : [text];
+}
+
 function ChatBody({ text }: { text: string }) {
   const blocks: { kind: 'p' | 'ul'; lines: string[] }[] = [];
   for (const raw of text.split('\n')) {
     const line = raw.trim();
     if (!line) continue;
     const bullet = line.startsWith('- ') ? line.slice(2) : null;
+    const pieces = sentences(bullet ?? line);
     const last = blocks.at(-1);
-    if (bullet && last?.kind === 'ul') last.lines.push(bullet);
-    else blocks.push(bullet ? { kind: 'ul', lines: [bullet] } : { kind: 'p', lines: [line] });
+    if (bullet && last?.kind === 'ul') last.lines.push(...pieces);
+    else if (bullet) blocks.push({ kind: 'ul', lines: pieces });
+    else pieces.forEach(piece => blocks.push({ kind: 'p', lines: [piece] }));
   }
   if (!blocks.length) return null;
   return <div className="chat-body">
@@ -41,8 +48,18 @@ export default function AquaChat({ batch, stationId, chartMethod, messages, onMe
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
+  const logEnd = useRef<HTMLDivElement>(null);
   const contextMethod = batch.agent_context.meta.default_method;
   const live = messages.some(message => message.source === 'agent37');
+  const answered = messages.some(message => message.role === 'assistant');
+  const chips = answered ? [
+    stationId ? `Explain ${stationId}.` : 'Explain this station.',
+    'How do the reconstruction methods compare?',
+    'What are the limitations of this synthetic export?',
+  ] : suggestedQuestions;
+  useEffect(() => {
+    logEnd.current?.scrollIntoView({ block: 'nearest' });
+  }, [messages, pending]);
   async function send(question: string) {
     const text = question.trim();
     if (!text || pending) return;
@@ -71,7 +88,7 @@ export default function AquaChat({ batch, stationId, chartMethod, messages, onMe
     </div>
     {chartMethod && chartMethod !== contextMethod && <p className="caveat" role="status">The chart uses {chartMethod}. Aqua explains the exported default method {contextMethod} and will not invent facts for the chart method.</p>}
     <div className="suggestion-row">
-      {suggestedQuestions.map(question => <button key={question} type="button" onClick={() => send(question)} disabled={pending}>{question}</button>)}
+      {chips.map(question => <button key={question} type="button" onClick={() => send(question)} disabled={pending}>{question}</button>)}
     </div>
     <div className="chat-log" role="log" aria-live="polite" aria-relevant="additions">
       {messages.length === 0 && <p className="empty-state">Ask about the selected station, inspection priorities, the graph, or the limits of this export.</p>}
@@ -79,8 +96,9 @@ export default function AquaChat({ batch, stationId, chartMethod, messages, onMe
         <p className="chat-kicker">{message.role === 'user' ? 'You' : message.source === 'agent37' ? 'Aqua · Agent37' : 'Aqua · export briefing'}</p>
         <ChatBody text={message.text} />
       </article>)}
-      {pending && <p role="status">Aqua is reading the export…</p>}
+      {pending && <p className="typing-indicator" role="status">Aqua is reading {stationId ?? 'the selected station'}…</p>}
       {failed && <p role="alert">The question could not be answered. <button type="button" onClick={() => send(failed)}>Retry</button></p>}
+      <div ref={logEnd} />
     </div>
     <form onSubmit={event => { event.preventDefault(); void send(draft); }}>
       <label htmlFor="aqua-question">Ask Aqua</label>

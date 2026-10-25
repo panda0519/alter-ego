@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Well } from './data/models';
+import type { Method, Well } from './data/models';
 import { validCoordinates } from './data/coordinates';
+import { priorityLabel } from './data/presentation';
 
-interface Props { wells: Well[]; selectedId?: string; onSelect: (id: string) => void; active?: boolean }
+interface Props { wells: Well[]; selectedId?: string; method?: Method; onSelect: (id: string) => void; active?: boolean }
+
+function tooltipLabel(well: Well, method?: Method): string {
+  const summary = method ? well.summaries?.[method] : undefined;
+  const station = `${well.id} (${well.role})`;
+  return summary ? `${station} · ${priorityLabel(summary.priority)}` : station;
+}
 type MapStatus = 'loading' | 'ready' | 'tiles-unavailable' | 'map-unavailable';
 
-export default function WellMap({ wells, selectedId, onSelect, active = true }: Props) {
+export default function WellMap({ wells, selectedId, method, onSelect, active = true }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markers = useRef(new Map<string, L.CircleMarker>());
@@ -68,9 +75,7 @@ export default function WellMap({ wells, selectedId, onSelect, active = true }: 
         const marker = L.circleMarker([well.latitude, well.longitude], {
           radius: 8, color: '#10253C', fillColor: '#7FB8B4', fillOpacity: 0.95, weight: 2,
         }).addTo(map);
-        const tooltip = document.createElement('span');
-        tooltip.textContent = `${well.id} (${well.role})`;
-        marker.bindTooltip(tooltip);
+        marker.bindTooltip(tooltipLabel(well, method));
         marker.on('click', () => onSelect(well.id));
         const element = marker.getElement();
         if (element) {
@@ -110,6 +115,15 @@ export default function WellMap({ wells, selectedId, onSelect, active = true }: 
       }
     }
   }, [selectedId, locatedWells, onSelect]);
+
+  useEffect(() => {
+    for (const well of locatedWells) {
+      const marker = markers.current.get(well.id);
+      const label = tooltipLabel(well, method);
+      marker?.setTooltipContent(label);
+      marker?.getElement()?.setAttribute('aria-label', `Select well ${well.id} (${well.role})`);
+    }
+  }, [locatedWells, method]);
 
   useEffect(() => {
     if (active) mapRef.current?.invalidateSize({ pan: false });

@@ -90,7 +90,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
 
       <div hidden={view !== 'stations'} data-view="stations">
         <div className="stations-layout">
-          <WellMap wells={batch.predictions.wells} selectedId={well?.id} onSelect={selectWell} active={view === 'stations'} />
+          <WellMap wells={batch.predictions.wells} selectedId={well?.id} method={method} onSelect={selectWell} active={view === 'stations'} />
           <section className="panel selection-panel" aria-labelledby="wells-title">
             <h2 id="wells-title">Stations</h2>
             <label htmlFor="station-search">Search by station ID</label>
@@ -106,10 +106,16 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
               }}>
                 {listed.map(item => {
                   const itemSummary = method ? item.summaries[method] : undefined;
+                  const depth = itemSummary?.latest_depth_m;
+                  const change = itemSummary?.change_30d_m;
                   return <li key={item.id}>
                     <button type="button" aria-pressed={item.id === well?.id} onClick={() => selectWell(item.id)}>
                       <span>{item.id}</span>
-                      <span className="well-role">{roleLabels[item.role]} · {priorityLabel(itemSummary?.priority)}</span>
+                      <span className="well-facts">
+                        <span className="well-role">{roleLabels[item.role]} · {priorityLabel(itemSummary?.priority)}</span>
+                        <span className="well-metric" data-field="row-depth">{typeof depth === 'number' ? String(depth) : ''}</span>
+                        <span className="well-metric" data-field="row-change">{typeof change === 'number' ? String(change) : ''}</span>
+                      </span>
                     </button>
                   </li>;
                 })}
