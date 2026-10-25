@@ -30,4 +30,4 @@ The completion that satisfied this check came from the redacted endpoint pattern
 
 ## Hosting
 
-The Render site remains one static site. This connector does not create a second hosted service. The static build answers from the published export when the proxy is absent.
+The Render site remains one static site. This connector does not create a second hosted service. Live local acceptance against instance `gr7nnwqxgf` was verified on 2026-10-25 with a real `{ source: "agent37", text }` reply. The public Render deployment remains fail-closed on the deterministic export briefing unless a proxy is configured. The static build answers from the published export when the proxy is absent.

@@ -646,7 +646,7 @@ try {
       assert.equal(await evaluate('document.getElementById("check-agent-context").disabled'), true);
     }
     await contextState(kind);
-    assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Live Agent37 integration has not been verified'));
+    assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('No agent response is displayed here'));
     assert.equal((await readDetails())['well-id'], heldout.id);
   }
   for (const requestId of heldContextChecks) await send('Fetch.failRequest', { requestId, errorReason: 'Aborted' }).catch(() => {});

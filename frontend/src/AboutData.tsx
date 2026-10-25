@@ -35,7 +35,7 @@ export default function AboutData({ batch, open, onClose }: { batch: Batch; open
           ? `Physics-enhanced GCN-LSTM completed with exported lambda ${batch.metrics.methods.gcn_lstm_physics.lambda ?? 'unavailable'}. These are reconstructions, not field measurements.`
           : 'A physics-trained model is not selected; the physics export remains not_run.'}</p>
         <p>{batch.run_info.code_revision && !batch.run_info.code_revision.includes('+dirty') ? 'The exporter revision is clean.' : 'Training/source provenance remains unresolved.'}</p>
-        <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
+        <p>Nodus is not verified. Aqua shows a live Agent37 reply only after a configured proxy returns one. This static deployment stays on the export briefing unless that proxy is configured.</p>
       </>}
       {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
       {trainingRevisions.length > 0 && <div>
@@ -44,7 +44,7 @@ export default function AboutData({ batch, open, onClose }: { batch: Batch; open
           ? `Physics-enhanced GCN-LSTM completed with exported lambda ${batch.metrics.methods.gcn_lstm_physics.lambda ?? 'unavailable'}. These are reconstructions, not field measurements.`
           : 'Positive-lambda training ran, but validation selected warmup weights. A physics-trained model is not selected; the physics export remains not_run.'}</p>
         <p>The exporter revision is clean; historical training revisions contain +dirty. Person A has not independently reproduced the training or checkpoints.</p>
-        <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
+        <p>Nodus is not verified. Aqua shows a live Agent37 reply only after a configured proxy returns one. This static deployment stays on the export briefing unless that proxy is configured.</p>
       </div>}
       <dl className="metadata">
         <div><dt>Dataset ID</dt><dd>{meta.dataset_id}</dd></div>

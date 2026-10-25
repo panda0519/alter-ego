@@ -28,7 +28,7 @@ export default function AgentBriefing({ context, selectedId, method }: { context
   return <section className="panel briefing-panel" aria-labelledby="briefing-title">
     <p className="eyebrow">06 / Briefing</p>
     <h2 id="briefing-title">Agent37 inspection briefing</h2>
-    <p className="notice">Optional backup service. Live Agent37 integration has not been verified. No agent response is displayed here.</p>
+    <p className="notice">Optional backup service. No agent response is displayed here. Aqua labels a reply Agent37 only after the proxy returns source agent37. The public static site stays on the export briefing unless that proxy is configured.</p>
     <p>{context.meta.dataset_kind} / artifact_kind={context.meta.artifact_kind}. {context.meta.caption}</p>
     <p>Context as of {context.meta.as_of_date}; generated (UTC) {context.meta.generated_at_utc}. Run: {context.meta.run_id}.</p>
     <p className="briefing-selection" role="status">Dashboard well: {well?.id ?? 'None'}. Dashboard method: {method ?? 'None'}. Agent context method: {context.meta.default_method}.</p>

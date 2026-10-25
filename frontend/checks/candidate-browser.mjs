@@ -49,7 +49,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   const body = await evaluate('document.body.innerText');
   for (const label of ['SYNTHETIC / CONTRACT-VALIDATED', predictions.meta.run_id, 'not been independently verified',
     'IDW has a lower holdout test MAE than GCN-LSTM', 'Physics-enhanced GCN-LSTM completed with exported lambda 0.1',
-    'Nodus and live Agent37 integrations are not verified', 'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
+    'Nodus is not verified', 'This static deployment stays on the export briefing unless that proxy is configured', 'The exporter revision is clean', 'not forecasting']) assert.ok(body.includes(label), label);
   await closeAbout();
   for (const name of Object.keys(raw)) {
     const served = await evaluate(`fetch('/data/${name}.json').then(response => response.json()).then(value => value.meta)`);

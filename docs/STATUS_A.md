@@ -2,7 +2,7 @@
 
 ## Agent37 connector status - 2026-10-25 IST
 
-Live acceptance for instance `gr7nnwqxgf` was verified on 2026-10-25. The local proxy returned HTTP 200 with `{ source: "agent37", text }`, and the preview showed "Powered by Agent37". The upstream pattern was `https://gr7nnwqxgf-8000.agent37.app/v1/chat/completions`. `AGENT37_API_URL`, `AGENT37_API_KEY`, and `AGENT_CONTEXT_URL` stayed in the server process environment. No `sk_live_` key and no `a37_token` value are in Git. Fallback behaviour remains covered by the assistant checks. The Render site stays one static site, and its build does not embed the local proxy URL. Details are in `agent/ACCEPTANCE.md`.
+Live local acceptance against instance `gr7nnwqxgf` was verified on 2026-10-25 with a real `{ source: "agent37", text }` reply. The local proxy returned HTTP 200, and the preview showed "Powered by Agent37" and "Aqua · Agent37". The upstream pattern was `https://gr7nnwqxgf-8000.agent37.app/v1/chat/completions`. `AGENT37_API_URL`, `AGENT37_API_KEY`, and `AGENT_CONTEXT_URL` stayed in the server process environment. No `sk_live_` key and no `a37_token` value are in Git. The public Render static deployment remains fail-closed on the deterministic export briefing unless a proxy is configured. Its build does not embed the local proxy URL. Details are in `agent/ACCEPTANCE.md`.
 
 ## Completed physics export - 2026-10-25 IST
 
