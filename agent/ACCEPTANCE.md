@@ -1,6 +1,8 @@
 # Agent37 connector acceptance
 
-Live Agent37 acceptance is PENDING. The connector code is present and fail-closed. No private completion URL is recorded here, and port 9119 is not used.
+Live Agent37 acceptance for instance `gr7nnwqxgf` was verified on 2026-10-25.
+A POST to `http://127.0.0.1:8787/api/assistant` returned HTTP 200 with `{ source: "agent37", text }`.
+The local preview then showed "Powered by Agent37" after that reply. The connector code remains fail-closed. Port 9119 was not used. No API key and no `a37_token` value are stored in this repository.
 
 ## Path
 
@@ -22,7 +24,9 @@ From the repository root:
 node agent/proxy/server.mjs
 ```
 
-The proxy listens at `http://127.0.0.1:8787/api/assistant`. Then set `VITE_AGENT_PROXY_URL=http://127.0.0.1:8787/api/assistant` and rebuild the frontend. Until a real reply from instance `gr7nnwqxgf` is observed, live acceptance stays PENDING.
+The proxy listens at `http://127.0.0.1:8787/api/assistant`. Then set `VITE_AGENT_PROXY_URL=http://127.0.0.1:8787/api/assistant` and rebuild the frontend.
+
+The completion that satisfied this check came from the redacted endpoint pattern `https://gr7nnwqxgf-8000.agent37.app/v1/chat/completions`. The server sends the workspace key only from its own environment. Port 8000 was not listening at the start of the check, so an OpenAI-compatible adapter was started inside the instance. It forwards to that instance's Hermes gateway and is not part of this repository. A sleep or rebuild of the instance stops that process until it is started again. The published Render build does not set `VITE_AGENT_PROXY_URL`.
 
 ## Hosting
 

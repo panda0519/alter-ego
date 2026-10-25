@@ -1,9 +1,9 @@
 # Agent37 preparation and verification
 
 Agent37 account: VERIFIED by the user's explicit confirmation on 2026-10-24.
-Live integration: PENDING / OPTIONAL. The user confirms there is no active
-instance or public URL. Core application, ML export integration and deployment
-are independent of Agent37. The backup integration is disabled by default.
+Instance `gr7nnwqxgf` answered through the local proxy on 2026-10-25. See
+`agent/ACCEPTANCE.md`. Core application, ML export integration and the static
+deployment do not require Agent37. The published site leaves the proxy unset.
 A local fixture/context-file check is not an
 Agent37 conversation or sponsor integration evidence.
 
@@ -13,8 +13,8 @@ local proxy in `agent/proxy/server.mjs`, which delegates to
 It never receives `AGENT37_API_URL`, `AGENT37_API_KEY`, or a model key. When that
 proxy is unset or does not return `{ source: "agent37", text }`, Aqua answers
 from the loaded `agent_context.json`. A separate public Agent37 conversation URL
-may still be opened from `VITE_AGENT37_URL`. See `agent/ACCEPTANCE.md`. Live
-acceptance stays pending until a real reply from instance `gr7nnwqxgf` is observed.
+may still be opened from `VITE_AGENT37_URL`. See `agent/ACCEPTANCE.md` for the
+2026-10-25 `{ source: "agent37", text }` observation. Credentials stay outside Git.
 
 Scope conflict: MASTER_PLAN.md lists the Agent37 briefing as required and A08
 requires live fetch/answer evidence. The user's explicit decision makes this an
