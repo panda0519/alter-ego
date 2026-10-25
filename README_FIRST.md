@@ -1,8 +1,6 @@
 # Start here
 
-The submission demo is described in [README.md](README.md). The notes below are the original setup pack.
-
-This is an implementation plan and setup pack, not a finished prototype.
+The submission demo is described in [README.md](README.md). The notes below are the original setup pack, written before that demo existed.
 
 1. Both read MASTER_PLAN.md and AGENTS.md.
 2. Copy the contents into the root of the agreed Git repository. Do not commit the zip itself.
@@ -14,9 +12,8 @@ Included: shared rules, pinned dependency manifests, model YAML, four JSON schem
 six-well/60-day UI fixtures, one contract checker, agent instructions, slide outline,
 handoff/status templates and 25 small role-specific phase prompts.
 
-Not included: app source, data downloader, synthetic training generator, GCN/LSTM code,
-training results, trained weights, working deployment, platform accounts or sponsor runs.
-Those are built by the phase prompts and verified on your machines.
+The original pack did not include the app, the training code, or a deployment.
+Those were added in later phases. Use README.md for what the demo does now.
 
 Run the bundled contract check after installing ml/requirements-common.txt, or install
 jsonschema==4.25.1 in a small separate environment:
