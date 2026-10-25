@@ -11,7 +11,7 @@ Interactive three-view demo (Stations, Analysis, Aqua chat) for exploring a synt
 ## Views
 
 - Stations: station list with role, priority, and exported latest depth + 30-day change (when a summary exists).
-- Analysis: method comparison over the fixed range 2024-11-02 to 2024-12-31. Map titled “Demonstration region” with OSM attribution.
+- Analysis: method comparison over the fixed range 2024-11-02 to 2024-12-31. Map titled “Demonstration region” with OSM attribution. Marker spacing is for display and is not a measured distance.
 - Aqua: chat that answers only from the pre-exported synthetic text in `frontend/src/data/assistant.ts`. Follow-up chips are complete questions so they work without conversation history.
 
 ## Run locally

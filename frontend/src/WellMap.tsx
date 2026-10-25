@@ -22,23 +22,37 @@ function wellIcon(): L.DivIcon {
   });
 }
 
-function fieldRing(wells: Well[]): L.LatLngExpression[] {
-  const points = wells.map(well => ({ x: well.longitude, y: well.latitude }))
-    .sort((a, b) => a.x - b.x || a.y - b.y);
-  const cross = (o: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-  const build = (source: typeof points) => {
-    const ring: typeof points = [];
-    for (const point of source) {
-      while (ring.length >= 2 && cross(ring[ring.length - 2], ring[ring.length - 1], point) <= 0) ring.pop();
-      ring.push(point);
+function displayLatLng(wells: Well[]): Map<string, [number, number]> {
+  const points = wells.map(well => {
+    let hash = 2166136261;
+    for (const char of well.id) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+    const unit = (shift: number) => ((Math.imul(hash ^ shift, 2246822519) >>> 0) % 10000) / 10000;
+    return {
+      id: well.id,
+      lat: well.latitude + (unit(17) - 0.5) * 0.034,
+      lon: well.longitude + (unit(53) - 0.5) * 0.038,
+    };
+  });
+  const gap = 0.02;
+  for (let pass = 0; pass < 12; pass += 1) {
+    for (let i = 0; i < points.length; i += 1) {
+      for (let j = i + 1; j < points.length; j += 1) {
+        const left = points[i];
+        const right = points[j];
+        let dLat = right.lat - left.lat;
+        let dLon = right.lon - left.lon;
+        let dist = Math.hypot(dLat, dLon);
+        if (dist === 0) { dLat = 0.001; dLon = 0.001; dist = Math.hypot(dLat, dLon); }
+        if (dist >= gap) continue;
+        const scale = ((gap - dist) / 2) / dist;
+        left.lat -= dLat * scale;
+        left.lon -= dLon * scale;
+        right.lat += dLat * scale;
+        right.lon += dLon * scale;
+      }
     }
-    return ring;
-  };
-  const lower = build(points);
-  const upper = build([...points].reverse());
-  lower.pop();
-  upper.pop();
-  return [...lower, ...upper].map(point => [point.y, point.x]);
+  }
+  return new Map(points.map(point => [point.id, [point.lat, point.lon]]));
 }
 type MapStatus = 'loading' | 'ready' | 'tiles-unavailable' | 'map-unavailable';
 
@@ -74,7 +88,8 @@ export default function WellMap({ wells, selectedId, method, onSelect, active = 
       setStatus('loading');
       map = L.map(container.current, { scrollWheelZoom: false });
       mapRef.current = map;
-      const bounds = L.latLngBounds(locatedWells.map(well => L.latLng(well.latitude, well.longitude)));
+      const placed = displayLatLng(locatedWells);
+      const bounds = L.latLngBounds(locatedWells.map(well => L.latLng(...(placed.get(well.id) ?? [well.latitude, well.longitude]))));
       map.fitBounds(bounds, { padding: [28, 28], maxZoom: 12, animate: false });
 
       let failed = false;
@@ -99,15 +114,9 @@ export default function WellMap({ wells, selectedId, method, onSelect, active = 
       tiles.addTo(map);
       retryTiles.current = () => { failed = false; setStatus('loading'); startTimer(); tiles?.redraw(); };
 
-      const ring = fieldRing(locatedWells);
-      if (ring.length >= 3) {
-        L.polygon(ring, {
-          color: '#0F8D85', weight: 2, dashArray: '7 6', fillColor: '#3CCBC0', fillOpacity: 0.12, interactive: false,
-        }).addTo(map);
-      }
-
       for (const well of locatedWells) {
-        const marker = L.marker([well.latitude, well.longitude], { icon: wellIcon(), keyboard: false }).addTo(map);
+        const [lat, lon] = placed.get(well.id) ?? [well.latitude, well.longitude];
+        const marker = L.marker([lat, lon], { icon: wellIcon(), keyboard: false }).addTo(map);
         marker.bindTooltip(tooltipLabel(well, method));
         marker.on('click', () => onSelect(well.id));
         const element = marker.getElement();
@@ -165,9 +174,9 @@ export default function WellMap({ wells, selectedId, method, onSelect, active = 
 
   return <section className="panel map-panel" aria-labelledby="map-title">
     <h2 id="map-title">Station map</h2>
-    <p className="region-label">Demonstration region. Positions are the exported coordinates for this dataset.</p>
+    <p className="region-label">Demonstration region. Markers are spaced unevenly for display. Distances on the map are not measurements.</p>
     <p id="map-help">Select a well marker or use the station list. Focus a marker and press Enter or Space. The larger aqua marker is selected.</p>
-    <p className="region-label">The outline groups the exported station coordinates. Teal is normal priority. Amber is watch or high. This is not a surveyed field boundary.</p>
+    <p className="region-label">Teal is normal priority. Amber is watch or high.</p>
     {locatedWells.length !== wells.length && <p role="status">{wells.length - locatedWells.length} well locations cannot be mapped. Their list entries remain available.</p>}
     {!locatedWells.length && <p className="notice" role="status">No valid well coordinates are available. Use the well list and details.</p>}
     {!!locatedWells.length && <>
