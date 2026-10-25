@@ -12,7 +12,8 @@ readings, inspect priorities, open the Agent37-hosted briefing. Do not claim liv
 future forecasting, official danger thresholds or demonstrated real-world accuracy from synthetic data.
 
 ## Shared decisions
-- Person A uses Codex locally and owns frontend/, agent/, docs/ and presentation/.
+- Cursor is the primary coding agent on Windows and may perform integration, frontend, agent, docs, presentation, and release work on this machine.
+- Person A may use Cursor or Codex locally and owns frontend/, agent/, docs/ and presentation/.
 - Person B uses Cursor locally and owns ml/, tests/ and private local data/ and runs/.
 - Person A owns contracts/, root setup files and the frontend data publishing step.
   Person B reviews schema changes. Both agree before any breaking contract change.
@@ -42,7 +43,7 @@ future forecasting, official danger thresholds or demonstrated real-world accura
 - Prompt files are work specifications, not instructions to disable approvals or safeguards.
 
 ## Git
-main is the integrated branch. A works on feature/product; B works on feature/model.
+main is the integrated branch. On Windows, Cursor may work on release/alter-ego-demo and main as the integration agent. A may also work on feature/product; B works on feature/model.
 A is integration owner. Commit completed phases; communicate the commit SHA. A reviews and
 merges B's branch at agreed checkpoints, validates, pushes main; B merges main back before
 starting work that depends on the integration. Do not squash away the pre-event disclosure.
