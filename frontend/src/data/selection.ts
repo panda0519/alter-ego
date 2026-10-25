@@ -3,8 +3,13 @@ import type { Batch, Method, Well } from './models.ts';
 
 export interface Selection { wellId: string; method: string }
 
+export function firstHoldoutId(batch: Batch): string | undefined {
+  return batch.predictions.wells.find(well => well.role === 'holdout')?.id;
+}
+
 export function initialSelection(batch: Batch): Selection {
-  return { wellId: batch.predictions.wells[0]?.id ?? '', method: batch.predictions.meta.default_method };
+  const well = batch.predictions.wells.find(item => item.role === 'holdout') ?? batch.predictions.wells[0];
+  return { wellId: well?.id ?? '', method: batch.predictions.meta.default_method };
 }
 
 export function methodAvailable(batch: Batch, well: Well, method: Method): boolean {

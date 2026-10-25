@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { Batch, Method, Summary } from './data/models';
-import { depthLabel } from './data/selection';
-import { methodLabels, priorityRows, resultRows, resultValue } from './data/results';
-import { holdoutComparison, methodTitles, priorityLabel, roundMetric, statusLabel } from './data/presentation';
+import { priorityRows, resultRows, resultValue } from './data/results';
+import { formatDepth, holdoutComparison, methodTitles, methodViewLabels, priorityLabel, roleBadge, roundMetric, signedChangeText, statusLabel } from './data/presentation';
 
 export default function PriorityResults({ batch, selectedId, method, onSelectWell, onSelectMethod }: {
   batch: Batch; selectedId?: string; method?: Method;
@@ -18,7 +17,7 @@ export default function PriorityResults({ batch, selectedId, method, onSelectWel
   return <>
     <section className="panel priority-panel" aria-labelledby="priority-title">
       <h2 id="priority-title">Inspection priorities</h2>
-      <p className="priority-method" role="status">{method ? `Priorities: ${methodLabels[method]} (${method})` : 'Choose a valid method to view priorities.'}</p>
+      <p className="priority-method" role="status">{method ? `Priorities: ${methodTitles[method]}` : 'Choose a valid method to view priorities.'}</p>
       <p>Highest exported priorities are listed first. These are prototype inspection labels, not official warnings.</p>
       <div className="priority-tools">
         <label htmlFor="priority-search">Search priorities</label>
@@ -27,36 +26,46 @@ export default function PriorityResults({ batch, selectedId, method, onSelectWel
           {(['all', 'high', 'watch', 'normal', 'unknown'] as const).map(item => <button key={item} type="button" aria-pressed={band === item} onClick={() => setBand(item)}>{item === 'all' ? 'All' : priorityLabel(item)}</button>)}
         </div>
       </div>
-      {!visible.length ? <p className="empty-state">No priority entries available for this selection.</p> : <ol className="priority-list">
-        {visible.map(row => <li key={row.id} data-priority-id={row.id}>
-          <button type="button" aria-pressed={row.id === selectedId} onClick={() => {
-            onSelectWell(row.id);
-            const heading = document.getElementById('detail-title');
-            heading?.focus();
-          }}>Inspect {row.id}</button>
-          <p><strong>{row.priority}</strong> / {row.role}</p>
-          <p>Latest estimate: {depthLabel(row.summary?.latest_depth_m)} below ground. 30-day change: {depthLabel(row.summary?.change_30d_m)}.</p>
-          <p>Exported reasons: {row.summary?.reason_codes.length ? row.summary.reason_codes.join(', ') : 'Unknown'}</p>
-          {!row.summary && <p>Reconstruction summary unavailable for this method.</p>}
-        </li>)}
-      </ol>}
+      {!visible.length ? <p className="empty-state">No priority entries available for this selection.</p> : <div className="priority-scroll">
+        <table className="priority-table">
+          <thead>
+            <tr>
+              <th scope="col">Station</th>
+              <th scope="col">Role</th>
+              <th scope="col">Latest Depth</th>
+              <th scope="col">30-Day Change</th>
+              <th scope="col">Priority</th>
+              <th scope="col"><span className="sr-only">Open</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map(row => <tr key={row.id} data-priority-id={row.id}>
+              <td>{row.id}</td>
+              <td><span className="role-badge">{roleBadge(row.role)}</span></td>
+              <td>{formatDepth(row.summary?.latest_depth_m)}</td>
+              <td>{signedChangeText(row.summary?.change_30d_m)}</td>
+              <td><span className={`priority-badge priority-${row.priority}`}>{priorityLabel(row.priority)}</span></td>
+              <td><button type="button" aria-pressed={row.id === selectedId} onClick={() => {
+                onSelectWell(row.id);
+                document.getElementById('detail-title')?.focus();
+              }}>View</button></td>
+            </tr>)}
+          </tbody>
+        </table>
+      </div>}
     </section>
     <section className="panel results-panel" aria-labelledby="results-title">
       <h2 id="results-title">Method comparison</h2>
-      <ul className="badges" aria-label="Evaluation dataset labels"><li>{meta.dataset_kind}</li><li>artifact_kind={meta.artifact_kind}</li></ul>
       {comparison && <p className="caveat">{comparison}</p>}
-      <p>{batch.metrics.evaluation.notes}</p>
       {meta.artifact_kind === 'fixture' && <p className="notice">Illustrative UI fixture. No evaluation has run; accuracy values are unavailable.</p>}
       <div className="result-grid">{resultRows(batch).map(row => <section key={row.method} className="result-card" data-result-method={row.method} aria-labelledby={`result-${row.method}`}>
         <h3 id={`result-${row.method}`}>{methodTitles[row.method]}</h3>
-        <p className="technical-name">{methodLabels[row.method]} ({row.method})</p>
-        {row.method === 'gcn_lstm_physics' && <p>water-balance regulariser (gcn_lstm_physics)</p>}
-        <button type="button" aria-pressed={method === row.method} onClick={() => onSelectMethod(row.method)}>Inspect method {row.method}</button>
+        <p className={`status-badge status-${row.status}`}>{statusLabel(row.status)}</p>
+        <button type="button" aria-pressed={method === row.method} onClick={() => onSelectMethod(row.method)}>{method === row.method ? 'Active Model' : methodViewLabels[row.method]}</button>
         <p className="metric-face">Validation MAE <strong>{roundMetric(row.validationMae)}</strong></p>
-        <p className="metric-face">Test MAE <strong>{roundMetric(row.testMae)}</strong></p>
-        <p>Status: <strong>{statusLabel(row.status)}</strong>{!row.completed && ' - results unavailable'}</p>
+        <p className="metric-face">Holdout Test MAE <strong>{roundMetric(row.testMae)}</strong></p>
         <details>
-          <summary>More metrics and evaluation details</summary>
+          <summary>Details</summary>
           <dl className="metadata">
             <div><dt>Validation MAE</dt><dd data-metric="validationMae">{resultValue(row.validationMae, ' m')}</dd></div>
             <div><dt>Test MAE</dt><dd data-metric="testMae">{resultValue(row.testMae, ' m')}</dd></div>
@@ -67,7 +76,6 @@ export default function PriorityResults({ batch, selectedId, method, onSelectWel
             {row.method === 'gcn_lstm_physics' && <div><dt>Exported regulariser lambda</dt><dd data-metric="lambda">{resultValue(row.lambda)}</dd></div>}
           </dl>
         </details>
-        {row.method === 'gcn_lstm_physics' && <p>The water-balance regulariser uses prototype assumptions; its label does not establish improved accuracy or validated hydrology.</p>}
       </section>)}</div>
     </section>
   </>;

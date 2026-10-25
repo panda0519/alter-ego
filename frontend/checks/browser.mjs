@@ -190,10 +190,10 @@ try {
     await runCandidate({ send, evaluate, waitText, navigate, pause, predictions: fixturePredictions, setScenario: value => { scenario = value; }, setTileMode: value => { tileMode = value; } });
   } else {
   await navigate('valid');
-  await waitText('6 wells loaded');
+  await waitText('Aug 1 – Sep 29, 2024');
   await openAbout();
   const valid = await evaluate('document.body.innerText');
-  for (const expected of ['Dataset: synthetic', 'artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', '60 series dates loaded', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
+  for (const expected of ['artifact_kind=fixture', '2024-08-01 to 2024-09-29', '2026-10-21T12:00:00Z', 'fixture-layout-v1', 'Aug 1 – Sep 29, 2024', 'Holdout Station', 'No experiment has run.']) assert.ok(valid.includes(expected), expected);
   await closeAbout();
   await showTab('analysis');
   await waitText('Groundwater depth');
@@ -204,14 +204,18 @@ try {
   console.log('PASS browser: published batch, type/dates/counts and fixture warning');
   async function chooseMethod(method) {
     await evaluate(`(() => { const select = document.getElementById('reconstruction-method'); select.value = ${JSON.stringify(method)}; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-    await waitText(`Selected method: ${method}.`);
+    await waitText(`Method ${method}.`);
+  }
+  async function selectListed(id) {
+    await evaluate(`([...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(id)})).click()`);
+    await waitText(`Station ${id}.`);
   }
   async function readDetails() {
     return evaluate(`Object.fromEntries([...document.querySelectorAll('[data-field]')].map(node => [node.dataset.field, node.textContent]))`);
   }
   for (const well of fixturePredictions.wells) {
     await evaluate(`(() => { [...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(well.id)}).click(); })()`);
-    await waitText(`Selected well: ${well.id}.`);
+    await waitText(`Station ${well.id}.`);
     for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
       await chooseMethod(method);
       const details = await readDetails();
@@ -222,7 +226,7 @@ try {
         priority: summary.priority, reasons: summary.reason_codes.join(', '),
       });
       assert.equal(await evaluate('document.querySelectorAll(".well-list button[aria-pressed=true]").length'), 1);
-      await waitText(`History: ${well.id} / ${method}`);
+      await waitText(`Station ${well.id}. Method ${method}.`);
       assert.deepEqual(await evaluate('[...document.querySelectorAll(".history-table tbody tr")].map(row => [...row.children].map(cell => cell.textContent))'),
         fixturePredictions.dates.map((date, index) => [date, `${well.predictions_m[method][index]} m`]));
     }
@@ -235,7 +239,7 @@ try {
   assert.equal(await evaluate('document.activeElement === document.querySelector(".well-list button")'), true);
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', unmodifiedText: '\r', windowsVirtualKeyCode: 13 });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-  await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+  await waitText(`Station ${fixturePredictions.wells[0].id}.`);
   assert.equal((await readDetails()).method, 'gcn_lstm_physics');
   assert.equal(await evaluate('document.querySelector("label[for=reconstruction-method]").textContent'), 'Reconstruction method');
   console.log('PASS browser: keyboard well selection and labelled method control');
@@ -246,17 +250,17 @@ try {
   const mapBefore = await evaluate('document.querySelector(".well-map")._leaflet_id');
   for (const well of fixturePredictions.wells) {
     await evaluate(`document.querySelector('.well-map [data-well-id="${well.id}"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))`);
-    await waitText(`Selected well: ${well.id}.`);
+    await waitText(`Station ${well.id}.`);
     assert.equal((await readDetails())['well-id'], well.id);
     assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), well.id);
   }
   await evaluate('document.querySelector(".well-list button").click()');
-  await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+  await waitText(`Station ${fixturePredictions.wells[0].id}.`);
   assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), fixturePredictions.wells[0].id);
   await evaluate(`document.querySelector('.well-map [data-well-id="${fixturePredictions.wells[1].id}"]').focus()`);
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
-  await waitText(`Selected well: ${fixturePredictions.wells[1].id}.`);
+  await waitText(`Station ${fixturePredictions.wells[1].id}.`);
   assert.equal((await readDetails()).method, 'gcn_lstm_physics');
   assert.equal(await evaluate('document.querySelector(".well-map")._leaflet_id'), mapBefore);
   console.log('PASS browser: all circle markers select wells; list/map/details sync; keyboard marker activation; map not recreated on selection');
@@ -268,7 +272,8 @@ try {
   console.log('PASS browser: invalid method clears details and valid selection recovers');
   for (const mode of ['null-summary', 'unavailable-method']) {
     await navigate(mode);
-    await waitText('6 wells loaded');
+    await waitText('Aug 1 – Sep 29, 2024');
+    await selectListed(fixturePredictions.wells[0].id);
     await chooseMethod('gcn_lstm');
     const details = await readDetails();
     assert.equal(details.latest, 'Unknown');
@@ -278,10 +283,10 @@ try {
     const body = await evaluate('document.body.innerText');
     assert.equal(body.includes('Method unavailable for this well.'), mode === 'unavailable-method');
     await evaluate('document.querySelectorAll(".well-list button")[1].click()');
-    await waitText(`Selected well: ${fixturePredictions.wells[1].id}.`);
+    await waitText(`Station ${fixturePredictions.wells[1].id}.`);
     assert.equal((await readDetails()).latest, `${fixturePredictions.wells[1].summaries.gcn_lstm.latest_depth_m} m`);
     await evaluate('document.querySelector(".well-list button").click()');
-    await waitText(`Selected well: ${fixturePredictions.wells[0].id}.`);
+    await waitText(`Station ${fixturePredictions.wells[0].id}.`);
     assert.equal((await readDetails()).latest, 'Unknown');
     console.log(`PASS browser: ${mode} and repeated switching never substitute or retain another well's values`);
   }
@@ -289,12 +294,12 @@ try {
     await navigate(mode);
     const body = await waitText(text);
     assert.ok(body.includes('Retry loading') && body.includes('No partial batch is displayed.'));
-    assert.ok(!body.includes('6 wells loaded') && !body.includes('fixture-layout-v1'));
+    assert.ok(!body.includes('Aug 1 – Sep 29, 2024') && !body.includes('fixture-layout-v1'));
     console.log(`PASS browser: ${mode} rejected without stale/partial data`);
   }
   scenario = 'valid';
   await evaluate('document.querySelector("button").click()');
-  await waitText('6 wells loaded');
+  await waitText('Aug 1 – Sep 29, 2024');
   console.log('PASS browser: retry recovers a complete valid batch');
   await navigate('loading');
   await waitText('Loading the complete export batch...');
@@ -304,17 +309,17 @@ try {
     await send('Fetch.fulfillRequest', { requestId, responseCode: 200, body: Buffer.from(body).toString('base64') }).catch(() => {});
   }
   held = [];
-  await waitText('6 wells loaded');
+  await waitText('Aug 1 – Sep 29, 2024');
   console.log('PASS browser: loading state and completion');
   tileMode = 'failure';
   await navigate('valid');
   await waitText('Background map tiles are unavailable or incomplete.');
   assert.equal(await evaluate('document.querySelectorAll(".well-map [data-well-id]").length'), 6);
   await evaluate('document.querySelectorAll(".well-list button")[2].click()');
-  await waitText(`Selected well: ${fixturePredictions.wells[2].id}.`);
+  await waitText(`Station ${fixturePredictions.wells[2].id}.`);
   await chooseMethod('gcn_lstm');
   assert.equal((await readDetails()).method, 'gcn_lstm');
-  assert.ok((await evaluate('document.body.innerText')).includes('60 series dates loaded'));
+  assert.ok((await evaluate('document.body.innerText')).includes('Aug 1 – Sep 29, 2024'));
   tileMode = 'success';
   await evaluate('[...document.querySelectorAll("button")].find(button => button.textContent === "Retry map tiles").click()');
   await waitText('Map tiles loaded.');
@@ -344,7 +349,7 @@ try {
   await navigate('valid');
   await waitText('The map could not be initialized.');
   await evaluate('document.querySelectorAll(".well-list button")[3].click()');
-  await waitText(`Selected well: ${fixturePredictions.wells[3].id}.`);
+  await waitText(`Station ${fixturePredictions.wells[3].id}.`);
   assert.equal(await evaluate('document.querySelectorAll(".leaflet-map-pane").length'), 0);
   await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: failureHook.identifier });
   await navigate('valid'); await waitText('Map tiles loaded.');
@@ -352,6 +357,7 @@ try {
   await showTab('analysis');
   // A05 visualization: inspect real SVG path breaks and the date-aligned data.
   const selectedPath = '.history-selected .recharts-line-curve';
+  await selectListed(fixturePredictions.wells[0].id);
   await chooseMethod('gcn_lstm');
   await evaluate('document.getElementById("show-idw").click(); document.getElementById("show-observations").click()');
   for (let i = 0; i < 100; i++) {
@@ -361,7 +367,10 @@ try {
   assert.ok(await evaluate('!!document.querySelector(".history-idw .recharts-line-curve")'));
   assert.ok(await evaluate('(document.querySelector(".history-observed .recharts-line-curve").getAttribute("d").match(/M/g) || []).length > 1'), 'Observation nulls split the actual SVG path');
   assert.equal(await evaluate('document.querySelector(".history-table tbody tr td:last-child").textContent'), 'Missing');
-  assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('depth increases downward'));
+  const historyText = await evaluate('document.querySelector(".history-panel").innerText');
+  assert.ok(historyText.includes('Depth in metres below ground'));
+  assert.ok(historyText.includes('Selected Model') && historyText.includes('IDW Baseline (dashed)') && historyText.includes('Observed Depth'));
+  assert.equal(historyText.includes('Solid teal'), false);
   async function hoverFirstHistoryPoint() {
     await evaluate('document.querySelector(".history-plot").scrollIntoView({ block: "center" })');
     for (let i = 0; i < 100; i++) {
@@ -381,7 +390,7 @@ try {
   assert.ok(observationTooltip.includes('2024-08-01') && observationTooltip.includes('Observed reading: Missing'));
   const heldout = fixturePredictions.wells.find(well => well.role === 'holdout');
   await evaluate(`document.querySelector('.well-list button span').closest('ul').querySelectorAll('button')[${fixturePredictions.wells.indexOf(heldout)}].click()`);
-  await waitText(`History: ${heldout.id} / gcn_lstm`);
+  await waitText(`Station ${heldout.id}. Method gcn_lstm.`);
   assert.equal(await evaluate('document.getElementById("show-observations").disabled'), true);
   assert.equal(await evaluate('document.querySelectorAll(".history-observed").length'), 0);
   assert.equal(await evaluate('document.querySelector(".history-table thead").textContent.includes("Observed")'), false);
@@ -389,7 +398,7 @@ try {
   assert.equal(await evaluate('document.querySelector(".history-tooltip").innerText.includes("Observed")'), false);
   console.log('PASS browser: optional IDW/observations, real null-path breaks, units/direction and holdout observation exclusion');
   for (const mode of ['history-gaps', 'history-calendar-gap']) {
-    await navigate(mode); await waitText('6 wells loaded'); await showTab('analysis'); await chooseMethod('gcn_lstm');
+    await navigate(mode); await waitText('Aug 1 – Sep 29, 2024'); await showTab('analysis'); await selectListed(fixturePredictions.wells[0].id); await chooseMethod('gcn_lstm');
     for (let i = 0; i < 100; i++) {
       if (await evaluate(`!!document.querySelector('${selectedPath}')`)) break;
       await pause(100);
@@ -397,7 +406,7 @@ try {
     assert.ok(await evaluate(`(document.querySelector('${selectedPath}').getAttribute('d').match(/M/g) || []).length > 1`));
     console.log(`PASS browser: ${mode} produces visible path gaps, not interpolation`);
   }
-  await navigate('history-empty'); await waitText('6 wells loaded'); await showTab('analysis'); await chooseMethod('gcn_lstm');
+  await navigate('history-empty'); await waitText('Aug 1 – Sep 29, 2024'); await showTab('analysis'); await selectListed(fixturePredictions.wells[0].id); await chooseMethod('gcn_lstm');
   await waitText('No displayable history values');
   assert.equal(await evaluate('document.querySelectorAll(".history-panel .recharts-wrapper").length'), 0);
   await evaluate('document.getElementById("show-idw").click()');
@@ -408,7 +417,7 @@ try {
   assert.equal(await evaluate(`!!(document.querySelector('${selectedPath}')?.getAttribute('d') || '').match(/[ML]/)`), false);
   assert.ok(await evaluate('!!document.querySelector(".history-idw .recharts-line-curve")'));
   console.log('PASS browser: empty/unavailable prediction history and explicitly requested comparison remain distinct');
-  await navigate('valid'); await waitText('6 wells loaded'); await chooseMethod('gcn_lstm');
+  await navigate('valid'); await waitText('Aug 1 – Sep 29, 2024'); await selectListed(fixturePredictions.wells[0].id); await chooseMethod('gcn_lstm');
   await evaluate('document.getElementById("show-idw").click(); document.getElementById("show-observations").click()');
   if (new URL(origin).port === '5173') {
     const componentPath = new URL('../src/WellMap.tsx', import.meta.url);
@@ -456,7 +465,7 @@ try {
   // A06: presentation-only, role-restricted workflow and reveal privacy.
   async function selectWell(id) {
     await evaluate(`([...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(id)})).click()`);
-    await waitText(`Selected well: ${id}.`);
+    await waitText(`Station ${id}.`);
   }
   async function clickDemo(id, mode) {
     await evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
@@ -514,11 +523,12 @@ try {
   await clickDemo('reset-outage', 'sensor-available'); await assertHidden();
   for (const well of fixturePredictions.wells.filter(well => well.role !== 'holdout')) {
     await selectWell(well.id);
-    assert.equal(await evaluate('document.querySelectorAll(".outage-controls").length'), 0);
+    assert.equal(await evaluate('document.querySelectorAll("#simulate-outage").length'), 0);
+    assert.equal(await evaluate('document.querySelector(".holdout-switch").textContent'), `Switch to Holdout Station (${heldout.id}) to try Outage Simulation`);
   }
   console.log('PASS browser: switches before/after reveal reset privacy; keyboard action and reveal/outage tooltip checks; nonheldout roles have no demo controls');
   for (const scenario of ['outage-unavailable', 'outage-no-truth']) {
-    await navigate(scenario); await waitText('6 wells loaded'); await showTab('analysis'); await selectWell(heldout.id);
+    await navigate(scenario); await waitText('Aug 1 – Sep 29, 2024'); await showTab('analysis'); await selectWell(heldout.id);
     await clickDemo('simulate-outage', 'simulated-outage'); await assertHidden();
     await clickDemo('reveal-observations', 'reveal');
     if (scenario === 'outage-unavailable') assert.ok((await evaluate('document.querySelector(".history-panel").innerText')).includes('Selected-method predictions are unavailable'));
@@ -528,16 +538,16 @@ try {
     }
     await clickDemo('reset-outage', 'sensor-available'); await assertHidden();
   }
-  await navigate('valid'); await waitText('6 wells loaded'); await selectWell(heldout.id);
+  await navigate('valid'); await waitText('Aug 1 – Sep 29, 2024'); await selectWell(heldout.id);
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
-  await navigate('new-batch'); await waitText('6 wells loaded'); await openAbout(); await waitText('browser-test-new-dataset'); await closeAbout(); await showTab('analysis'); await selectWell(heldout.id); await assertHidden();
+  await navigate('new-batch'); await waitText('Aug 1 – Sep 29, 2024'); await openAbout(); await waitText('browser-test-new-dataset'); await closeAbout(); await showTab('analysis'); await selectWell(heldout.id); await assertHidden();
   assert.equal(await evaluate('document.getElementById("outage-state").dataset.mode'), 'sensor-available');
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
   await evaluate('document.querySelector(".outage-controls").scrollIntoView({ block: "start" })');
   const demoScreenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile(join(tmpdir(), 'alter-ego-a06-mobile.png'), Buffer.from(demoScreenshot.data, 'base64'));
   console.log('PASS browser: unavailable predictions, absent truth and new dataset reset safely; mobile demo screenshot captured');
-  await navigate('valid'); await waitText('6 wells loaded');
+  await navigate('valid'); await waitText('Aug 1 – Sep 29, 2024');
   await showTab('analysis');
   for (const method of ['idw', 'gcn_lstm', 'gcn_lstm_physics']) {
     await chooseMethod(method);
@@ -545,27 +555,35 @@ try {
     for (const well of fixturePredictions.wells) {
       const summary = well.summaries[method];
       const text = await evaluate(`document.querySelector('[data-priority-id="${well.id}"]').innerText`);
-      for (const value of [summary.priority, `${summary.latest_depth_m} m`, `${summary.change_30d_m} m`, ...summary.reason_codes]) assert.ok(text.includes(value));
+      const roleName = well.role === 'holdout' ? 'Holdout' : well.role === 'train_masked' ? 'Masked' : 'Visible';
+      const depthFace = summary.latest_depth_m == null ? 'Unknown' : `${Number(summary.latest_depth_m).toFixed(2)} m`;
+      const changeFace = summary.change_30d_m == null ? 'Unknown' : summary.change_30d_m > 0 ? `+${Math.abs(summary.change_30d_m).toFixed(2)} m deeper` : summary.change_30d_m < 0 ? `-${Math.abs(summary.change_30d_m).toFixed(2)} m shallower` : '0.00 m no change';
+      const priorityFace = { high: 'High', watch: 'Watch', normal: 'Normal', unknown: 'Unknown' }[summary.priority];
+      for (const value of [well.id, roleName, depthFace, changeFace, priorityFace, 'View']) assert.ok(text.includes(value), `${well.id} ${value}`);
       await evaluate(`document.querySelector('[data-priority-id="${well.id}"] button').click()`);
-      await waitText(`Selected well: ${well.id}.`);
+      await waitText(`Station ${well.id}.`);
       assert.equal((await readDetails()).method, method);
       assert.equal(await evaluate('document.querySelector(".well-map [aria-pressed=true]").dataset.wellId'), well.id);
-      await waitText(`History: ${well.id} / ${method}`);
+      await waitText(`Station ${well.id}. Method ${method}.`);
     }
   }
   assert.ok((await evaluate('[...document.querySelectorAll("[data-metric]")].map(node => node.textContent)')).every(value => value === 'Unavailable'));
-  assert.ok((await evaluate('document.querySelector(".results-panel").innerText')).includes('artifact_kind=fixture'));
+  await openAbout();
+  assert.ok((await evaluate('document.getElementById("about-data").innerText')).includes('artifact_kind=fixture'));
+  assert.ok((await evaluate('document.getElementById("about-data").innerText')).includes('water-balance regulariser'));
+  await closeAbout();
+  assert.equal((await evaluate('document.querySelector(".results-panel").innerText')).includes('artifact_kind='), false);
   assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 3);
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
   await evaluate('document.querySelector("[data-result-method=idw] button").click()');
   await chooseMethod('idw'); await assertHidden();
   await clickDemo('simulate-outage', 'simulated-outage'); await clickDemo('reveal-observations', 'reveal');
   await evaluate(`document.querySelector('[data-priority-id="${heldout.id}"] button').click()`);
-  await waitText(`Selected well: ${heldout.id}.`); await assertHidden();
+  await waitText(`Station ${heldout.id}.`); await assertHidden();
   await evaluate('document.querySelector("[data-priority-id=SYN-004] button").focus()');
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-  await waitText('Selected well: SYN-004.');
+  await waitText('Station SYN-004.');
   assert.equal(await evaluate('document.activeElement.id'), 'detail-title');
   console.log('PASS browser: all exported priority fields/order across methods; matching well/map/chart; fixture metrics unavailable; results buttons preserve reveal privacy; keyboard priority focus');
   for (const width of [1280, 390]) {
@@ -579,7 +597,7 @@ try {
     }
   }
   await navigate('result-statuses');
-  await waitText('6 wells loaded');
+  await waitText('Aug 1 – Sep 29, 2024');
   await openAbout();
   await waitText('TEST ONLY - no experiment');
   await closeAbout();
@@ -587,13 +605,16 @@ try {
   assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testMae]").textContent'), '0 m');
   assert.equal(await evaluate('document.querySelector("[data-result-method=idw] [data-metric=testPairs]").textContent'), '1');
   for (const method of ['gcn_lstm', 'gcn_lstm_physics']) assert.equal(await evaluate(`document.querySelector('[data-result-method=${method}] [data-metric=testMae]').textContent`), 'Unavailable');
-  assert.ok((await evaluate('document.querySelector("[data-result-method=gcn_lstm_physics]").innerText')).includes('water-balance regulariser (gcn_lstm_physics)'));
+  const physicsCard = await evaluate('document.querySelector("[data-result-method=gcn_lstm_physics]").innerText');
+  assert.ok(physicsCard.includes('Physics-Informed GCN-LSTM'));
+  assert.ok(physicsCard.includes('Not available'));
+  assert.equal(physicsCard.includes('water-balance regulariser (gcn_lstm_physics)'), false);
   await chooseMethod('gcn_lstm');
-  assert.ok((await evaluate('[...document.querySelectorAll("[data-priority-id]")].map(row => row.innerText)')).every(text => text.includes('unknown')));
+  assert.ok((await evaluate('[...document.querySelectorAll("[data-priority-id]")].map(row => row.innerText)')).every(text => text.includes('Unknown')));
   await navigate('fixture-metric-claim'); await waitText('fixture metrics must remain not_run');
   assert.equal(await evaluate('document.querySelectorAll(".result-card").length'), 0);
   console.log('PASS browser: test-only validated completed/failed/not_run rendering, zero preservation, unavailable priorities and rejection of fixture accuracy claims; desktop/mobile screenshots captured');
-  await navigate('valid'); await waitText('6 wells loaded');
+  await navigate('valid'); await waitText('Aug 1 – Sep 29, 2024');
   await showTab('assistant');
   assert.equal(await evaluate('document.querySelectorAll(".briefing-launch").length'), 0);
   assert.ok((await evaluate('document.querySelector(".briefing-panel").innerText')).includes('Agent37 instance is not configured'));

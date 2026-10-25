@@ -1,5 +1,11 @@
 # Person B status
 
+## Checkpoint selection fix - 2026-10-25
+
+Positive-lambda training now selects a checkpoint only from epochs after `lambda_zero_epochs`, and only once scheduled lambda is greater than 0. A lambda target of 0 may still select any epoch. Warmup epochs remain in `history.jsonl` and do not reset early stopping. `ml/export` and `publish` can emit `gcn_lstm_physics` as completed only for a distinct checkpoint whose lambda is 0.1 or 1.0. A warmup or lambda-0 weight match is refused.
+
+No new training run was produced. This machine has no `data/processed/active`, no `runs/` checkpoints, no NASA POWER cache, and no PyTorch in `.venv` or system Python 3.11. `pytest` was not executed. Python syntax of the edited modules was checked with `ast.parse` only. The published batch `b12-final-syn40-seed42-r2` is unchanged: `gcn_lstm_physics` stays `not_run`.
+
 Phase: B12–B13 validation selection, one holdout score, and the final local export are complete. Nodus did not run. No joint rehearsal was held.
 
 Dataset: private `data/processed/active`, `dataset_id` `05902f5167e6a8aefa02386b6437bfa984a2ec3b67e3fffee7c69d7b145c8351`, kind synthetic, seed 42. Unchanged split. This is not field accuracy.

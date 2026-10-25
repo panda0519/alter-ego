@@ -25,10 +25,13 @@ export default function AboutData({ batch, open, onClose }: { batch: Batch; open
       </div>}
       <p>{meta.caption}</p>
       <p>{batch.metrics.evaluation.notes}</p>
+      <p>The water-balance regulariser uses prototype assumptions; its label does not establish improved accuracy or validated hydrology.</p>
       {meta.dataset_kind === 'synthetic' && <p>Synthetic information does not demonstrate field accuracy.</p>}
       {trainingRevisions.length > 0 && <div>
         <p>Historical reconstruction only, not forecasting. Person B reports that IDW performed better on the holdout test; the default remains validation-selected.</p>
-        <p>Positive-lambda training ran, but validation selected warmup weights. A physics-trained model is not selected; the physics export remains not_run.</p>
+        <p>{batch.metrics.methods.gcn_lstm_physics.status === 'completed'
+          ? `Physics-enhanced GCN-LSTM completed with exported lambda ${batch.metrics.methods.gcn_lstm_physics.lambda ?? 'unavailable'}. These are reconstructions, not field measurements.`
+          : 'Positive-lambda training ran, but validation selected warmup weights. A physics-trained model is not selected; the physics export remains not_run.'}</p>
         <p>The exporter revision is clean; historical training revisions contain +dirty. Person A has not independently reproduced the training or checkpoints.</p>
         <p>Nodus and live Agent37 integrations are not verified. Agent37 remains an optional backup.</p>
       </div>}

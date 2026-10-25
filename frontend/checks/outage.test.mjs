@@ -85,4 +85,5 @@ test('new dataset initialization cannot retain a prior selection, reveal or char
   assert.equal(initialWorkspace(other).mode, 'sensor-available');
   assert.equal(initialWorkspace(other).chartEpoch, 0);
   assert.equal(initialWorkspace(other).selection.method, other.predictions.meta.default_method);
+  assert.equal(initialWorkspace(batch).selection.wellId, heldouts[0].id);
 });

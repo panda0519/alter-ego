@@ -13,8 +13,8 @@ import { methods } from './data/models';
 import type { AppView } from './data/view';
 import { selectView } from './data/view';
 import type { Batch, Role } from './data/models';
-import { depthLabel, methodAvailable, resolveSelection } from './data/selection';
-import { changeText, formatDepth, methodTitles, priorityLabel } from './data/presentation';
+import { depthLabel, firstHoldoutId, methodAvailable, resolveSelection } from './data/selection';
+import { changeText, formatDateRange, formatDepth, methodTitles, priorityLabel, roleBadge } from './data/presentation';
 
 const roleDescriptions: Record<Role, string> = {
   visible: 'Visible donor station. Previous-day observations may supply reconstruction inputs.',
@@ -40,6 +40,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
   const needle = query.trim().toLowerCase();
   const listed = batch.predictions.wells.filter(item => item.id.toLowerCase().includes(needle));
   const assistantOpen = view === 'assistant' || aquaOpen;
+  const holdoutId = firstHoldoutId(batch);
   function openView(action: AppView | 'analyze') {
     const next = selectView(action);
     setView(next);
@@ -63,17 +64,14 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
       </div>
     </header>
     <main id="workspace" tabIndex={-1}>
-      <section className="summary-bar" aria-label="Export summary">
+      <section className="summary-bar" aria-label="Selected station">
         <h2 id="detail-title" tabIndex={-1} className="sr-only">{well && method ? well.id : 'Select a station'}</h2>
-        <p>{batch.predictions.wells.length} wells loaded</p>
-        <p>{dates.length} series dates loaded</p>
-        <p>{dates[0]} to {dates.at(-1)}</p>
-        <p>Dataset: {meta.dataset_kind}</p>
-        <p>Selected station {well?.id ?? 'none'}</p>
+        <p className="station-pill">{well?.id ?? 'No station'}</p>
+        {well && <p className="role-badge">{roleBadge(well.role, 'bar')}</p>}
+        <p className="date-range">{formatDateRange(dates[0], dates.at(-1))}</p>
         {well?.role === 'holdout' && <p className="state-pill">{modeLabels[mode]}</p>}
       </section>
-      {well && method && <p className="selection-status sr-only" role="status">Selected well: {well.id}. Selected method: {method}.</p>}
-      {well && method && <p className="history-identity sr-only">History: {well.id} / {method}</p>}
+      {well && method && <p className="selection-status sr-only" role="status">Station {well.id}. Method {method}.</p>}
       {(!well || !method) && <p role="alert">Invalid selection. Choose a well and a supported method to view details.</p>}
       {well && method && !available && <p role="status">Method unavailable for this well. No estimates are shown for this selection.</p>}
       <div className="method-bar">
@@ -84,7 +82,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
             {methodTitles[option]}{well && !methodAvailable(batch, well, option) ? ' (Not available)' : fixture ? ' (illustrative)' : ''}
           </option>)}
         </select>
-        <p id="method-help">{fixture ? 'Fixture series are illustrative, including neural methods. No model has been trained.' : 'Methods use the supplied export only. Unavailable methods are never replaced by another method.'}</p>
+        <p id="method-help" className="sr-only">{fixture ? 'Illustrative series. No model has been trained.' : 'Choose one exported reconstruction.'}</p>
       </div>
 
       <div hidden={view !== 'stations'} data-view="stations">
@@ -144,7 +142,7 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
       <div hidden={view !== 'analysis'} data-view="analysis" className="analysis-layout">
         <section className="panel analysis-controls">
           <h2>Reconstruction</h2>
-          {well && <OutageControls batch={batch} well={well} mode={mode} onAction={action => dispatch({ type: 'demo', action, role: well.role })} />}
+          {well && <OutageControls batch={batch} well={well} mode={mode} holdoutId={holdoutId} onSelectHoldout={selectWell} onAction={action => dispatch({ type: 'demo', action, role: well.role })} />}
         </section>
         <HistoryChart key={state.chartEpoch} batch={batch} selection={selection} demoMode={mode} />
         <PriorityResults batch={batch} selectedId={well?.id} method={method} onSelectWell={selectWell} onSelectMethod={next => dispatch({ type: 'method', method: next })} />

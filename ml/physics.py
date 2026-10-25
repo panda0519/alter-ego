@@ -63,6 +63,15 @@ def scheduled_lambda(epoch: int, target: float, zero_epochs: int, ramp_epochs: i
     return float(target) * step / float(ramp_epochs)
 
 
+def checkpoint_epoch_eligible(epoch: int, lambda_target: float, lambda_at_epoch: float, lambda_zero_epochs: int) -> bool:
+    """A zero target may keep any epoch. A positive target keeps only post-warmup epochs with lambda active."""
+    if not math.isfinite(float(lambda_target)) or float(lambda_target) < 0.0:
+        raise ValueError("lambda target must be finite and non-negative")
+    if math.isclose(float(lambda_target), 0.0, rel_tol=0.0, abs_tol=0.0):
+        return True
+    return int(epoch) > int(lambda_zero_epochs) and float(lambda_at_epoch) > 0.0
+
+
 def daily_storage_change_m(precip_m_per_day: float, et0_m_per_day: float, q_m_per_day: float, sy: float, alpha: float, beta: float) -> float:
     if sy == 0.0:
         raise ValueError("specific yield is zero")

@@ -5,6 +5,7 @@ import torch
 
 from ml.losses import EmptySupervision
 from ml.physics import (
+    checkpoint_epoch_eligible,
     daily_storage_change_m,
     estimate_q,
     residuals_m,
@@ -147,3 +148,14 @@ def test_positive_lambda_ramps_after_five_zero_epochs():
     assert scheduled_lambda(10, 0.1, 5, 5) == pytest.approx(0.1)
     assert scheduled_lambda(11, 0.1, 5, 5) == pytest.approx(0.1)
     assert scheduled_lambda(40, 1.0, 5, 5) == pytest.approx(1.0)
+
+
+def test_positive_lambda_selection_ignores_warmup_epochs():
+    assert checkpoint_epoch_eligible(3, 0.0, 0.0, 5) is True
+    assert checkpoint_epoch_eligible(1, 0.1, 0.0, 5) is False
+    assert checkpoint_epoch_eligible(5, 1.0, 0.0, 5) is False
+    assert checkpoint_epoch_eligible(6, 0.1, 0.0, 5) is False
+    assert checkpoint_epoch_eligible(6, 0.1, scheduled_lambda(6, 0.1, 5, 5), 5) is True
+    assert checkpoint_epoch_eligible(10, 1.0, scheduled_lambda(10, 1.0, 5, 5), 5) is True
+    with pytest.raises(ValueError):
+        checkpoint_epoch_eligible(1, -0.1, 0.0, 5)

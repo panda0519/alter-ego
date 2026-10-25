@@ -5,8 +5,10 @@ clip. Windows stay in stored order. Validation MAE is metres at train-masked
 wells, one score per date from the window that ends on that date. Holdout
 labels are not read for the data loss or the checkpoint choice. Lambda 0 does
 not apply the physics term. A positive target uses five epochs at lambda 0 and
-five epochs of linear ramp, then holds the target. A smoke run is one epoch
-and is tagged so it cannot be used as the comparative result.
+five epochs of linear ramp, then holds the target. Checkpoint selection for a
+positive target ignores those warmup epochs and keeps the lowest validation MAE
+only once lambda is active. A zero target may still select any epoch. A smoke
+run is one epoch and is tagged so it cannot be used as the comparative result.
 """
 from __future__ import annotations
 
@@ -35,6 +37,7 @@ from ml.infer import predict_ending_windows
 from ml.losses import EmptySupervision, masked_standardised_mse, supervision_mask
 from ml.model import GCNLSTM
 from ml.physics import (
+    checkpoint_epoch_eligible,
     estimate_q,
     physics_constants,
     scheduled_lambda,
@@ -248,6 +251,15 @@ def train_lambda0(
         with history_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, allow_nan=False) + "\n")
         epochs_ran = epoch
+        epoch_lambda = _lambda_on_epoch(epoch, float(lambda_target), training, use_physics)
+        eligible = checkpoint_epoch_eligible(
+            epoch,
+            float(lambda_target),
+            epoch_lambda,
+            int(training["lambda_zero_epochs"]),
+        )
+        if not eligible:
+            continue
         if best_mae is None or validation_mae < best_mae:
             best_mae = validation_mae
             best_epoch = epoch
@@ -264,7 +276,7 @@ def train_lambda0(
                 smoke,
                 device,
                 lambda_target=float(lambda_target),
-                lambda_at_epoch=applied_lambda,
+                lambda_at_epoch=epoch_lambda,
                 calibration=calibration,
                 constants=constants if use_physics else None,
             )
@@ -274,6 +286,8 @@ def train_lambda0(
                 stopped_early = True
                 break
     elapsed = time.perf_counter() - started
+    if best_epoch is None or not (run_dir / "checkpoint.pt").is_file():
+        raise RuntimeError("no eligible checkpoint: a positive lambda must select an epoch after warmup")
     digest = file_sha256(run_dir / "checkpoint.pt")
     manifest = {
         "run_kind": _run_kind(float(lambda_target), smoke),

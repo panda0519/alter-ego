@@ -1,10 +1,16 @@
 import type { Batch, Well } from './data/models';
 import type { DemoAction, DemoMode } from './data/outage';
 
-export default function OutageControls({ batch, well, mode, onAction }: {
-  batch: Batch; well: Well; mode: DemoMode; onAction: (action: DemoAction) => void;
+export default function OutageControls({ batch, well, mode, onAction, holdoutId, onSelectHoldout }: {
+  batch: Batch; well: Well; mode: DemoMode; holdoutId?: string;
+  onAction: (action: DemoAction) => void; onSelectHoldout: (id: string) => void;
 }) {
-  if (well.role !== 'holdout') return <p>Outage and reveal are available only for held-out wells. This well remains viewable in its exported evaluation role.</p>;
+  if (well.role !== 'holdout') {
+    if (!holdoutId) return null;
+    return <button type="button" className="primary holdout-switch" onClick={() => onSelectHoldout(holdoutId)}>
+      Switch to Holdout Station ({holdoutId}) to try Outage Simulation
+    </button>;
+  }
   const modeLabels = { 'sensor-available': 'Sensor available (historical setup)', 'simulated-outage': 'Simulated outage', reveal: 'Observations revealed' };
   return <section className="outage-controls" aria-labelledby="outage-title">
     <h3 id="outage-title">Outage demonstration</h3>

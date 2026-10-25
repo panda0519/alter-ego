@@ -1,5 +1,36 @@
 # Person A status
 
+## Compact analysis UI and physics checkpoint rule - 2026-10-25 IST
+
+Physics was not completed. The published batch remains `b12-final-syn40-seed42-r2`.
+`gcn_lstm_physics` is still `not_run`, with null validation MAE, test MAE, test RMSE, and lambda.
+IDW validation MAE is 1.1042053369012759 m and holdout test MAE is 1.4958895956006706 m.
+GCN-LSTM validation MAE is 0.8598469860694834 m and holdout test MAE is 1.626403108513909 m.
+IDW still has the lower holdout test MAE. The default method remains `gcn_lstm`, chosen from validation.
+
+Blocker for a real physics export on this machine:
+- `data/processed/active` is absent.
+- `runs/` checkpoints are absent. The earlier lambda 0.1 and lambda 1 checkpoints were epoch-3 warmup weights and were not saved as post-warmup weights.
+- `.venv\Scripts\python.exe` is Python 3.11.9 with jsonschema 4.25.1 and does not have PyTorch. System Python 3.11 also has no torch.
+- `data/cache/power` is absent, so the synthetic bundle cannot be regenerated offline from NASA POWER weather.
+
+No fake completed physics JSON was written. `frontend/public/data/` and `contracts/` were not rewritten.
+
+ML selection now keeps a positive-lambda checkpoint only for epochs after `lambda_zero_epochs` once lambda is active. Lambda 0 may still select any epoch. The exporter can write a completed physics series only when evaluation marks a distinct positive-lambda checkpoint and lambda is 0.1 or 1.0. A warmup checkpoint is refused. `pytest` was not run because PyTorch is not installed. `ast.parse` of the changed Python files succeeded.
+
+UI: the analysis header is a station pill, role badge, and export date range. The demo opens on the first holdout station. Non-holdout stations on Analysis show one switch to that holdout. The chart uses legend pills. Method cards use IDW Baseline, GCN-LSTM, and Physics-Informed GCN-LSTM, with View / Active Model controls. Evaluation notes, artifact kind, and the water-balance statement stay in About this data. Priorities are a scrollable table and still include every well.
+
+Checks:
+- `npm.cmd --prefix frontend run validate:data`: PASS.
+- `npm.cmd --prefix frontend run typecheck`: PASS.
+- `npm.cmd --prefix frontend test`: PASS, 130 tests, 0 failed.
+- `npm.cmd --prefix frontend run build`: PASS. Vite reported 688 modules.
+- `git diff --check`: PASS.
+- `node checks/browser.mjs` from `frontend/` against `http://127.0.0.1:4173`, with `ALTER_EGO_CHECK_BATCH` unset: PASS, including the fixture scenarios and no uncaught exceptions.
+- `ALTER_EGO_CHECK_BATCH=candidate` then `node checks/browser.mjs`: PASS. All 120 well/method selections, 48 outage cycles, and the served batch still show physics as not completed.
+
+Local preview: `http://127.0.0.1:4173`.
+
 ## UI refresh on feature/ui-refresh - 2026-10-25 IST
 
 Presentation rebuild on top of integrated main `d323285`. Scientific files, contracts,

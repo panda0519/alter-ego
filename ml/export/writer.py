@@ -456,6 +456,7 @@ def export_final_batch(
     device: str,
     generated_at_utc: str | None = None,
     repo_root: Path | None = None,
+    physics_m: np.ndarray | None = None,
 ) -> dict:
     """Write the selected batch. Physics stays not_run unless evaluation says it is a distinct model."""
     if not RUN_ID.fullmatch(run_id):
@@ -468,7 +469,7 @@ def export_final_batch(
         raise ValueError("holdout was not kept behind the validation choice")
     config = load_config(config_path)
     stamp = generated_at_utc or datetime.now(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
-    documents = _documents_final(config, bundle, run_id, stamp, neural_m, evaluation, validation, test, device)
+    documents = _documents_final(config, bundle, run_id, stamp, neural_m, evaluation, validation, test, device, physics_m)
     root = repo_root or Path(config_path).resolve().parents[2]
     attach_runtime_identity(documents, root)
     assert_completed_common_mask(documents["metrics"])
@@ -490,7 +491,7 @@ def export_final_batch(
     return documents["metrics"]["meta"]
 
 
-def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluation, validation, test, device) -> dict:
+def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluation, validation, test, device, physics_m=None) -> dict:
     idw = predict_idw(
         bundle["depth_m"], bundle["depth_valid"], np.array(bundle["roles"]),
         bundle["latitude"], bundle["longitude"],
@@ -501,14 +502,34 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
         raise ValueError("neural predictions do not match the bundle grid")
     default_method = evaluation["default_method"]
     physics_status = evaluation["gcn_lstm_physics_status"]
+    physics = None
+    if physics_status == "completed":
+        if physics_m is None:
+            raise ValueError("completed physics export requires its own prediction grid")
+        selection_guard = evaluation["positive_lambda_selection"]
+        selected_lambda = evaluation.get("selected_positive_lambda")
+        if not selection_guard.get("used_positive_lambda") or selection_guard.get("weights_match_lambda0"):
+            raise ValueError("refusing to label a warmup checkpoint as completed physics")
+        if selected_lambda is None or not (math.isclose(float(selected_lambda), 0.1) or math.isclose(float(selected_lambda), 1.0)):
+            raise ValueError("completed physics lambda must be 0.1 or 1.0")
+        physics = np.asarray(physics_m, dtype=np.float64)
+        if physics.shape != idw.shape:
+            raise ValueError("physics predictions do not match the bundle grid")
+    elif physics_status != "not_run":
+        raise ValueError("this export path only withholds a non-distinct physics checkpoint")
     export_index = _history_index(bundle, int(config["export"]["history_days"]))
     export_dates = [bundle["dates"][index] for index in export_index]
     meta = _meta(config, bundle, run_id, generated_at_utc, export_dates[-1])
     meta["default_method"] = default_method
+    physics_clause = (
+        f"Physics-enhanced GCN-LSTM completed at lambda {evaluation.get('selected_positive_lambda')}."
+        if physics is not None else
+        "The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain."
+    )
     meta["caption"] = (
         f"Selected reconstruction on the {bundle['dataset_kind']} dataset {bundle['dataset_id']}. "
         f"Default method is {default_method} by common-mask validation MAE. "
-        "The selected positive-lambda checkpoints match the lambda-0 warmup and are not a physics gain. "
+        f"{physics_clause} "
         "This is not field accuracy."
     )
     change_days = int(config["export"]["change_days"])
@@ -529,19 +550,29 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
             "predictions_m": {
                 "idw": idw_series,
                 "gcn_lstm": neural_series,
-                "gcn_lstm_physics": [None] * len(export_dates),
+                "gcn_lstm_physics": (
+                    [_number(physics[index, well]) for index in export_index]
+                    if physics is not None else [None] * len(export_dates)
+                ),
             },
             "summaries": {
                 "idw": summarise(export_dates, idw_series, change_days),
                 "gcn_lstm": summarise(export_dates, neural_series, change_days, "gcn_lstm_ending_window"),
-                "gcn_lstm_physics": unknown_summary("method_not_run"),
+                "gcn_lstm_physics": (
+                    summarise(export_dates, [_number(physics[index, well]) for index in export_index], change_days, "gcn_lstm_physics_ending_window")
+                    if physics is not None else unknown_summary("method_not_run")
+                ),
             },
         })
-    if physics_status != "not_run":
-        raise ValueError("this export path only withholds a non-distinct physics checkpoint")
     coverage = test["pairs"] / evaluation["holdout_valid_labels"] if evaluation["holdout_valid_labels"] else None
     selection = evaluation["positive_lambda_selection"]
     calibration = evaluation["calibration"]
+    physics_note = (
+        f"gcn_lstm_physics completed from {selection['selected_run']} at lambda {evaluation.get('selected_positive_lambda')}. "
+        if physics is not None else
+        "Lambda 0.1 and lambda 1 both selected epoch 3 at lambda 0. Their weights match runs/lambda0. "
+        "gcn_lstm_physics stays not_run because the schema cannot call that warmup checkpoint a completed physics model. "
+    )
     notes = (
         "Completed methods share one holdout well-date only when every completed prediction and the label are finite. "
         "Each date is scored once from the window ending that day. "
@@ -550,8 +581,7 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
         f"Test pairs {test['pairs']}, contributing wells {test['wells']}, "
         f"holdout valid labels {evaluation['holdout_valid_labels']}, coverage {coverage}. "
         f"Displayed wells {evaluation['displayed_wells']}. Chart dates {len(export_dates)} are not the pair count. "
-        "Lambda 0.1 and lambda 1 both selected epoch 3 at lambda 0. Their weights match runs/lambda0. "
-        "gcn_lstm_physics stays not_run because the schema cannot call that warmup checkpoint a completed physics model. "
+        f"{physics_note}"
         f"q is {calibration['q_m_per_day']} m/day after clipping the median {calibration['unclipped_median_m_per_day']}; "
         f"eligible wells {calibration['eligible_wells']}. This is not field accuracy."
     )
@@ -566,7 +596,10 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
         "methods": {
             "idw": _from_common(validation, test, "idw", None),
             "gcn_lstm": _from_common(validation, test, "gcn_lstm", 0.0),
-            "gcn_lstm_physics": _not_run(),
+            "gcn_lstm_physics": (
+                _from_common(validation, test, "gcn_lstm_physics", evaluation.get("selected_positive_lambda"))
+                if physics is not None else _not_run()
+            ),
         },
     }
     info = {
@@ -577,14 +610,21 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
         "torch_version": _torch_version(),
         "device": device,
         "nodus_job_ids": [],
-        "selected_positive_lambda": None,
-        "physics_assumptions": [
+        "selected_positive_lambda": evaluation.get("selected_positive_lambda") if physics is not None else None,
+        "physics_assumptions": (
+            [
+                f"Positive-lambda checkpoint selection ignored warmup epochs. Selected run {selection['selected_run']} at lambda {evaluation.get('selected_positive_lambda')}.",
+                "The water-balance regulariser uses Sy 0.10, alpha 0.15, beta 0.10 and a 7-day storage residual. It is not a validated hydrology model.",
+                f"Frozen q is {calibration['q_m_per_day']} m/day from {calibration['eligible_wells']} permitted wells. Residual scale is {calibration['scale_m']} m. Lateral flow is false.",
+                "Nodus was not used. No job id exists.",
+            ] if physics is not None else [
             "Positive-lambda training ran locally. Both selected checkpoints are the lambda-0 warmup, epoch 3.",
             f"Tie at validation MAE {selection['validation_mae_m']} m kept lambda target {selection['selected_lambda_target']} by the smaller-target rule, then withheld it from gcn_lstm_physics.",
             evaluation.get("schema_gap") or "No distinct physics checkpoint was exported.",
             f"Frozen q is {calibration['q_m_per_day']} m/day from {calibration['eligible_wells']} permitted wells. Residual scale is {calibration['scale_m']} m. Lateral flow is false.",
             "Nodus was not used. No job id exists.",
-        ],
+            ]
+        ),
         "data_sources": _sources(bundle) + [
             "GCN-LSTM predictions come from runs/lambda0, scored once per ending window.",
             f"Lambda-0 checkpoint sha256 {evaluation['lambda0_checkpoint_sha256']}.",
@@ -601,7 +641,11 @@ def _documents_final(config, bundle, run_id, generated_at_utc, neural_m, evaluat
                 f"Default method is {default_method} by lower common-mask validation MAE. "
                 "Holdout results were not used to change that choice."
             ),
-            "The positive-lambda checkpoints match the lambda-0 warmup weights. They are not a physics-trained gain. gcn_lstm_physics is not_run for that reason.",
+            (
+                f"gcn_lstm_physics is a completed reconstruction at lambda {evaluation.get('selected_positive_lambda')}. It is not a field measurement."
+                if physics is not None else
+                "The positive-lambda checkpoints match the lambda-0 warmup weights. They are not a physics-trained gain. gcn_lstm_physics is not_run for that reason."
+            ),
             "Priority thresholds are prototype inspection labels, not official warnings.",
             "The chart shows the exported test dates. Metric pairs are the common mask, not the chart length or the full cohort.",
             "Displayed wells are the frozen cohort. Test metrics use holdout wells that have a scored pair.",

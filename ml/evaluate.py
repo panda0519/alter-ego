@@ -13,6 +13,7 @@ change it. Each date is the last position of the window that ends on it.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -194,17 +195,34 @@ def publish(config_path: Path, bundle_dir: Path, evaluation_dir: Path, run_id: s
         raise FileExistsError(f"refusing to overwrite existing run folder {output}")
     evaluation_dir = Path(evaluation_dir)
     evaluation = json.loads((evaluation_dir / "evaluation.json").read_text(encoding="utf-8"))
-    if evaluation["gcn_lstm_physics_status"] != "not_run":
-        raise RuntimeError("a distinct physics checkpoint needs its own series; this publisher does not relabel lambda 0")
-    saved = np.load(evaluation_dir / "predictions.npz")["gcn_lstm"]
+    status = evaluation["gcn_lstm_physics_status"]
+    if status not in {"not_run", "completed"}:
+        raise RuntimeError(f"unsupported physics status {status}")
+    saved = np.load(evaluation_dir / "predictions.npz")
     neural, device = reload_neural(Path(evaluation["lambda0_run"]), bundle_dir)
     require_same_device(evaluation["device"], device)
-    difference = max_abs_difference(saved, neural)
+    difference = max_abs_difference(saved["gcn_lstm"], neural)
     if difference > float(evaluation["prediction_atol_m"]):
         raise RuntimeError(f"reloaded predictions differ by {difference} m")
+    physics = None
+    if status == "completed":
+        selection = evaluation["positive_lambda_selection"]
+        lam = evaluation.get("selected_positive_lambda")
+        if not selection.get("used_positive_lambda") or selection.get("weights_match_lambda0"):
+            raise RuntimeError("refusing to export a warmup or lambda-0 checkpoint as completed physics")
+        if lam is None or not (math.isclose(float(lam), 0.1) or math.isclose(float(lam), 1.0)):
+            raise RuntimeError("completed physics requires lambda 0.1 or 1.0")
+        physics, physics_device = reload_neural(Path(selection["selected_run"]), bundle_dir)
+        require_same_device(evaluation["device"], physics_device)
+        physics_difference = max_abs_difference(saved["gcn_lstm_physics"], physics)
+        if physics_difference > float(evaluation["prediction_atol_m"]):
+            raise RuntimeError(f"reloaded physics predictions differ by {physics_difference} m")
+        difference = max(difference, physics_difference)
     config = load_config(config_path)
     bundle = load_arrays(bundle_dir)
     completed = {"idw": _idw(config, bundle), "gcn_lstm": neural}
+    if physics is not None:
+        completed["gcn_lstm_physics"] = physics
     n_train = bundle["n_train"]
     test_start = n_train + bundle["n_validation"]
     validation = score_common(
@@ -230,6 +248,7 @@ def publish(config_path: Path, bundle_dir: Path, evaluation_dir: Path, run_id: s
         validation=validation,
         test=test,
         device=device,
+        physics_m=physics,
     )
     (evaluation_dir / "reload_check.json").write_text(json.dumps({
         "max_abs_difference_m": difference,

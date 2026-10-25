@@ -12,11 +12,11 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
   const textValue = value => value === null ? 'Missing' : `${value} m`;
   async function select(id) {
     await evaluate(`([...document.querySelectorAll('.well-list button')].find(button => button.querySelector('span').textContent === ${JSON.stringify(id)})).click()`);
-    await waitText(`Selected well: ${id}.`);
+    await waitText(`Station ${id}.`);
   }
   async function method(value) {
     await evaluate(`(() => { const node = document.getElementById('reconstruction-method'); node.value = ${JSON.stringify(value)}; node.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-    await waitText(`Selected method: ${value}.`);
+    await waitText(`Method ${value}.`);
   }
   async function demo(id, mode) {
     await evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
@@ -44,7 +44,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
     await pause(40);
   }
   await navigate('valid');
-  await waitText('40 wells loaded');
+  await waitText('Nov 2 – Dec 31, 2024');
   await openAbout();
   const body = await evaluate('document.body.innerText');
   for (const label of ['SYNTHETIC / PROVISIONAL', '+dirty', predictions.meta.run_id, 'Physics reconstruction is not completed.', 'not been independently verified',
@@ -119,7 +119,7 @@ export async function runCandidate({ send, evaluate, waitText, navigate, pause, 
     await navigate(scenario); await waitText(message);
     assert.equal(await evaluate('document.querySelectorAll(".well-list button").length'), 0);
     setScenario('valid');
-    await evaluate('document.querySelector("main button").click()'); await waitText('40 wells loaded');
+    await evaluate('document.querySelector("main button").click()'); await waitText('Nov 2 – Dec 31, 2024');
     await select(holdouts[0].id); await hidden();
   }
   setTileMode('failure'); await navigate('valid'); await waitText('Background map tiles are unavailable or incomplete.');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { Batch } from './data/models';
 import type { Selection } from './data/selection';
 import { buildHistory, historyValue } from './data/history';
@@ -15,8 +15,7 @@ export default function HistoryChart({ batch, selection, demoMode = 'sensor-avai
   const observationLabel = well?.role === 'holdout' ? 'Revealed withheld readings' : 'Observed readings';
   return <section className="panel history-panel" aria-labelledby="chart-title">
     <h2 id="chart-title">Groundwater depth</h2>
-    <p className="history-identity" role="status">{well && method ? `History: ${well.id} / ${method}` : 'Choose a valid well and method to view history.'}</p>
-    <p>{batch.predictions.dates.length} series dates loaded. Depth is metres below ground. Larger values mean deeper water; depth increases downward on this chart.</p>
+    <p className="axis-subtitle">Depth in metres below ground</p>
     {fixture && <p>Illustrative series, not trained results or measured field accuracy.</p>}
     {well && method && <>
       <fieldset className="chart-options">
@@ -28,7 +27,11 @@ export default function HistoryChart({ batch, selection, demoMode = 'sensor-avai
       {observationsVisible && !points.some(point => point.observed !== null) && <p role="status">No exported observations are available for these dates. Missing readings remain missing.</p>}
       {!history.available && <p role="status">Selected-method predictions are unavailable for this well. No other method is substituted.</p>}
       {idwVisible && !history.idwAvailable && <p role="status">IDW comparison is unavailable for this well.</p>}
-      <p id="history-help">Solid teal: selected reconstruction. Dashed amber: optional IDW. Purple points and dashed segments: optional observed readings. Gaps mean missing exported values; no gap filling is performed. Lines between adjacent daily readings are visual guides.</p>
+      <ul className="legend-pills" id="history-help" aria-label="Chart legend">
+        <li><span className="swatch selected" /> Selected Model</li>
+        <li><span className="swatch idw" /> IDW Baseline (dashed)</li>
+        <li><span className="swatch observed" /> Observed Depth</li>
+      </ul>
       {!hasData ? <p className="empty-state" role="status">No displayable history values for this selection and these overlays.</p> : <div className="history-plot" aria-label={`Depth history for ${well.id}, ${method}`} aria-describedby="history-help">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 300, height: 320 }}>
           <LineChart key={chartKey} data={plotPoints} margin={{ top: 16, right: 12, bottom: 20, left: 0 }} accessibilityLayer>
@@ -44,7 +47,6 @@ export default function HistoryChart({ batch, selection, demoMode = 'sensor-avai
                 {observationsVisible && <p>{well.role === 'holdout' ? 'Revealed withheld reading' : 'Observed reading'}: {historyValue(point.observed)}</p>}
               </div> : null;
             }} />
-            <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12 }} />
             <Line className="history-selected" dataKey="reconstructed" name={`Reconstructed (${method})`} type="linear" stroke="#176b70" strokeWidth={2} dot={{ r: 2 }} connectNulls={false} isAnimationActive={false} />
             {idwVisible && <Line className="history-idw" dataKey="idw" name="IDW comparison" type="linear" stroke="#9b510b" strokeDasharray="7 4" dot={false} connectNulls={false} isAnimationActive={false} />}
             {observationsVisible && <Line className="history-observed" dataKey="observed" name={observationLabel} type="linear" stroke="#7242a0" strokeDasharray="2 4" dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />}

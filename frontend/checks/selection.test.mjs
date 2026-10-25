@@ -9,11 +9,12 @@ const batch = Object.fromEntries(await Promise.all(names.map(async name => [name
 ])));
 const methods = ['idw', 'gcn_lstm', 'gcn_lstm_physics'];
 
-test('initial selection uses export order and default method rather than fixture IDs', () => {
+test('initial selection uses the first holdout station and the fixture default method', () => {
   const different = structuredClone(batch);
-  different.predictions.wells[0].id = 'another-well';
+  const holdout = different.predictions.wells.find(well => well.role === 'holdout');
+  holdout.id = 'held-out-station';
   different.predictions.meta.default_method = 'gcn_lstm_physics';
-  assert.deepEqual(initialSelection(different), { wellId: 'another-well', method: 'gcn_lstm_physics' });
+  assert.deepEqual(initialSelection(different), { wellId: 'held-out-station', method: 'gcn_lstm_physics' });
 });
 for (const well of batch.predictions.wells) {
   for (const method of methods) {
