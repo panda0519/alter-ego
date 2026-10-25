@@ -11,14 +11,11 @@ const env = {
   ASSISTANT_DEMO_TOKEN: process.env.ASSISTANT_DEMO_TOKEN,
 };
 
+const host = process.env.HOST || '127.0.0.1';
 const server = createServer(async (request, response) => {
-  const origin = process.env.ASSISTANT_ALLOWED_ORIGIN;
-  if (origin) {
-    response.setHeader('access-control-allow-origin', origin);
-    response.setHeader('vary', 'Origin');
-  }
-  response.setHeader('access-control-allow-headers', 'content-type, x-demo-token');
+  response.setHeader('access-control-allow-origin', '*');
   response.setHeader('access-control-allow-methods', 'POST, OPTIONS');
+  response.setHeader('access-control-allow-headers', 'Content-Type');
   if (request.method === 'OPTIONS') {
     response.writeHead(204);
     response.end();
@@ -42,6 +39,6 @@ const server = createServer(async (request, response) => {
   response.end(JSON.stringify(result.payload));
 });
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`Assistant proxy listening on http://127.0.0.1:${port}/api/assistant`);
+server.listen(port, host, () => {
+  console.log(`Assistant proxy listening on http://${host}:${port}/api/assistant`);
 });

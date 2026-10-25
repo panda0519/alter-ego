@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Batch, Method } from './data/models';
 import { checkBriefingContext, ContextCheckError, publicHttpsUrl } from './data/briefing';
+import { verifiedAgent37Reply } from './data/verifiedReply';
 
 type CheckState = { kind: 'idle' | 'loading' | 'success' } | { kind: ContextCheckError['kind']; message: string };
 
@@ -28,7 +29,12 @@ export default function AgentBriefing({ context, selectedId, method }: { context
   return <section className="panel briefing-panel" aria-labelledby="briefing-title">
     <p className="eyebrow">06 / Briefing</p>
     <h2 id="briefing-title">Agent37 inspection briefing</h2>
-    <p className="notice">Optional backup service. No agent response is displayed here. Aqua labels a reply Agent37 only after the proxy returns source agent37. The public static site stays on the export briefing unless that proxy is configured.</p>
+    {context.meta.artifact_kind === 'fixture'
+      ? <p className="notice">Optional backup service. No agent response is displayed here. Aqua labels a reply Agent37 only after the proxy returns source agent37. The public static site stays on the export briefing unless that proxy is configured.</p>
+      : <>
+        <p className="notice">Optional backup service. Recorded Agent37 reply from instance gr7nnwqxgf on 2026-10-25. This is the verified answer, not a new request. Aqua asks for a fresh reply only when the public proxy is configured.</p>
+        <p>{verifiedAgent37Reply}</p>
+      </>}
     <p>{context.meta.dataset_kind} / artifact_kind={context.meta.artifact_kind}. {context.meta.caption}</p>
     <p>Context as of {context.meta.as_of_date}; generated (UTC) {context.meta.generated_at_utc}. Run: {context.meta.run_id}.</p>
     <p className="briefing-selection" role="status">Dashboard well: {well?.id ?? 'None'}. Dashboard method: {method ?? 'None'}. Agent context method: {context.meta.default_method}.</p>

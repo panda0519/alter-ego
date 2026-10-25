@@ -8,6 +8,7 @@ import AboutData from './AboutData';
 import AquaChat from './AquaChat';
 import AquaMark from './AquaMark';
 import type { ChatMessage } from './AquaChat';
+import { verifiedAgent37Reply } from './data/verifiedReply';
 import { initialWorkspace, workspaceReducer } from './data/outage';
 import { methods } from './data/models';
 import type { AppView } from './data/view';
@@ -30,7 +31,9 @@ export default function WellWorkspace({ batch }: { batch: Batch }) {
   const [about, setAbout] = useState(false);
   const [aquaOpen, setAquaOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => batch.predictions.meta.artifact_kind === 'fixture' ? [] : [{
+    id: 1, role: 'assistant', source: 'agent37', text: verifiedAgent37Reply,
+  }]);
   const { selection, mode } = state;
   const selectWell = useCallback((wellId: string) => dispatch({ type: 'well', wellId }), []);
   const { well, method, available, summary } = resolveSelection(batch, selection);
